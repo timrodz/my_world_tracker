@@ -17,7 +17,17 @@ defmodule WorldTrackerWeb.Router do
   scope "/", WorldTrackerWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", DashboardLive, :index
+
+    live "/data_sources", DataSourceLive.Index, :index
+    live "/data_sources/new", DataSourceLive.Form, :new
+    live "/data_sources/:id", DataSourceLive.Show, :show
+    live "/data_sources/:id/edit", DataSourceLive.Form, :edit
+
+    live "/tickers", TickerLive.Index, :index
+    live "/tickers/new", TickerLive.Form, :new
+    live "/tickers/:id", TickerLive.Show, :show
+    live "/tickers/:id/edit", TickerLive.Form, :edit
   end
 
   # Other scopes may use custom stacks.

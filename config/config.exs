@@ -9,7 +9,17 @@ import Config
 
 config :world_tracker,
   ecto_repos: [WorldTracker.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  enable_price_poller: true
+
+config :pythonx, :uv_init,
+  pyproject_toml: """
+  [project]
+  name = "world_tracker"
+  version = "0.1.0"
+  requires-python = "==3.12.*"
+  dependencies = ["yfinance>=1.2.0"]
+  """
 
 # Configures the endpoint
 config :world_tracker, WorldTrackerWeb.Endpoint,

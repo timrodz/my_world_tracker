@@ -7,21 +7,26 @@ defmodule WorldTracker.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      WorldTrackerWeb.Telemetry,
-      WorldTracker.Repo,
-      {DNSCluster, query: Application.get_env(:world_tracker, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: WorldTracker.PubSub},
-      # Start a worker by calling: WorldTracker.Worker.start_link(arg)
-      # {WorldTracker.Worker, arg},
-      # Start to serve requests, typically the last entry
-      WorldTrackerWeb.Endpoint
-    ]
+    children =
+      [
+        WorldTrackerWeb.Telemetry,
+        WorldTracker.Repo,
+        {DNSCluster, query: Application.get_env(:world_tracker, :dns_cluster_query) || :ignore},
+        {Phoenix.PubSub, name: WorldTracker.PubSub}
+      ] ++ maybe_price_poller() ++ [WorldTrackerWeb.Endpoint]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: WorldTracker.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp maybe_price_poller do
+    if Application.get_env(:world_tracker, :enable_price_poller, true) do
+      [WorldTracker.Markets.PricePoller]
+    else
+      []
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration

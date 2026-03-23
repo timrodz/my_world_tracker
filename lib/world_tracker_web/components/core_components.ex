@@ -117,6 +117,25 @@ defmodule WorldTrackerWeb.CoreComponents do
   end
 
   @doc """
+  Renders a formatted market price.
+
+  ## Examples
+
+      <.market_price price={Decimal.new("99.1")} currency_symbol="$" decimals={2} />
+      <.market_price price={Decimal.new("5842.11")} />
+  """
+  attr :price, :any, default: nil
+  attr :currency_symbol, :string, default: nil
+  attr :decimals, :integer, default: nil
+  attr :class, :any, default: nil
+
+  def market_price(assigns) do
+    ~H"""
+    <span class={@class}>{format_market_price(@price, @currency_symbol, @decimals)}</span>
+    """
+  end
+
+  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,
@@ -267,6 +286,33 @@ defmodule WorldTrackerWeb.CoreComponents do
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
+  end
+
+  defp format_market_price(nil, _currency_symbol, _decimals), do: "--"
+
+  defp format_market_price(price, currency_symbol, decimals) do
+    value =
+      if is_integer(decimals) do
+        price
+        |> Decimal.round(decimals)
+        |> Decimal.to_string(:normal)
+        |> pad_decimal_places(decimals)
+      else
+        Decimal.to_string(price, :normal)
+      end
+
+    [currency_symbol, value]
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.join()
+  end
+
+  defp pad_decimal_places(value, 0), do: value
+
+  defp pad_decimal_places(value, decimals) do
+    case String.split(value, ".", parts: 2) do
+      [integer, fraction] -> integer <> "." <> String.pad_trailing(fraction, decimals, "0")
+      [integer] -> integer <> "." <> String.duplicate("0", decimals)
+    end
   end
 
   # Helper used by inputs to generate form errors
