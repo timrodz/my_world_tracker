@@ -84,6 +84,10 @@ defmodule WorldTrackerWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
+
+      # Fluxon UI
+      use Fluxon
+
       # Core UI components
       import WorldTrackerWeb.CoreComponents
       import WorldTrackerWeb.ArticleComponents
