@@ -23,7 +23,9 @@ defmodule WorldTrackerWeb.DataSourceLive.Show do
       <.list>
         <:item title="Name">{@data_source.name}</:item>
         <:item title="Slug">{@data_source.slug}</:item>
+        <:item title="Type">{data_source_type(@data_source.type)}</:item>
         <:item title="Base url">{@data_source.base_url}</:item>
+        <:item title="Endpoint url">{@data_source.endpoint_url || "-"}</:item>
         <:item title="Tickers">{length(@data_source.tickers)}</:item>
       </.list>
 
@@ -77,4 +79,7 @@ defmodule WorldTrackerWeb.DataSourceLive.Show do
      |> assign(:page_title, "Show Data source")
      |> assign(:data_source, Sources.get_data_source!(id))}
   end
+
+  defp data_source_type(nil), do: "-"
+  defp data_source_type(type), do: type |> to_string() |> String.capitalize()
 end

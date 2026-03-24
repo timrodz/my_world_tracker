@@ -4,13 +4,21 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
   import Phoenix.LiveViewTest
   import WorldTracker.SourcesFixtures
 
-  @create_attrs %{name: "some name", slug: "some slug", base_url: "some base_url"}
+  @create_attrs %{
+    name: "some name",
+    slug: "some slug",
+    type: :news,
+    base_url: "some base_url",
+    endpoint_url: "https://example.com/rss.xml"
+  }
   @update_attrs %{
     name: "some updated name",
     slug: "some updated slug",
-    base_url: "some updated base_url"
+    type: :markets,
+    base_url: "some updated base_url",
+    endpoint_url: "https://example.com/updated.xml"
   }
-  @invalid_attrs %{name: nil, slug: nil, base_url: nil}
+  @invalid_attrs %{name: nil, slug: nil, type: nil, base_url: nil}
   defp create_data_source(_) do
     data_source = data_source_fixture()
 
@@ -98,6 +106,7 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
 
       assert html =~ data_source.name
       assert html =~ data_source.name
+      assert html =~ data_source.base_url
     end
 
     test "updates data_source and returns to show", %{conn: conn, data_source: data_source} do
@@ -124,6 +133,8 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
       html = render(show_live)
       assert html =~ "Data source updated successfully"
       assert html =~ "some updated name"
+      assert html =~ "Markets"
+      assert html =~ "https://example.com/updated.xml"
     end
   end
 end

@@ -194,7 +194,7 @@ defmodule WorldTrackerWeb.DashboardLive do
           <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">Browse</p>
           <p class="mt-2 text-lg font-semibold text-base-content">World News</p>
           <p class="mt-1 text-sm text-base-content/65">
-            Global headlines from BBC, Al Jazeera, The Guardian, and NPR.
+            Global headlines from your configured news sources.
           </p>
         </.link>
       </section>

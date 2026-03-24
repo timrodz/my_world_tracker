@@ -3,28 +3,24 @@ defmodule WorldTracker.News.FetchNewsWorker do
 
   require Logger
 
-  import Ecto.Query, warn: false
-
   alias Oban.Job
   alias Phoenix.PubSub
   alias WorldTracker.News
   alias WorldTracker.News.RssFetcher
-  alias WorldTracker.Repo
-  alias WorldTracker.Sources.DataSource
+  alias WorldTracker.Sources
 
-  @valid_slugs ~w(bbc_news al_jazeera the_guardian npr_world)
+  def enqueue(attrs \\ %{})
 
-  def enqueue(source_slug) when source_slug in @valid_slugs do
-    Logger.debug("enqueueing news fetch job source_slug=#{source_slug}")
+  def enqueue(attrs) when is_map(attrs) do
+    Logger.debug("enqueueing news fetch job attrs=#{inspect(attrs)}")
 
-    %{source_slug: source_slug}
+    attrs
     |> new()
     |> Oban.insert()
   end
 
-  def enqueue(source_slug) do
-    {:error,
-     "unknown source slug #{inspect(source_slug)}, valid slugs: #{Enum.join(@valid_slugs, ", ")}"}
+  def enqueue(source_slug) when is_binary(source_slug) do
+    enqueue(%{source_slug: source_slug})
   end
 
   @impl Oban.Worker
@@ -54,14 +50,47 @@ defmodule WorldTracker.News.FetchNewsWorker do
     end
   end
 
+  def perform(%Job{id: job_id, args: args}) do
+    started_at = System.monotonic_time(:millisecond)
+
+    Logger.debug("starting news fetch orchestrator job_id=#{job_id} args=#{inspect(args)}")
+
+    result = enqueue_news_sources()
+
+    duration_ms = System.monotonic_time(:millisecond) - started_at
+
+    case result do
+      {:ok, count} ->
+        Logger.debug(
+          "completed news fetch orchestrator job_id=#{job_id} enqueued=#{count} duration_ms=#{duration_ms}"
+        )
+
+        :ok
+
+      {:error, reason} ->
+        Logger.error("news fetch orchestrator failed job_id=#{job_id} reason=#{inspect(reason)}")
+
+        {:error, reason}
+    end
+  end
+
+  defp enqueue_news_sources do
+    Sources.list_news_data_sources()
+    |> Enum.reduce_while({:ok, 0}, fn data_source, {:ok, count} ->
+      case enqueue(%{source_slug: data_source.slug}) do
+        {:ok, _job} -> {:cont, {:ok, count + 1}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
   defp fetch_and_store(source_slug) do
-    data_source =
-      Repo.one(from(ds in DataSource, where: ds.slug == ^source_slug and ds.type == :news))
+    data_source = Sources.get_news_data_source_by_slug(source_slug)
 
     if is_nil(data_source) do
       {:error, "news data source not found for slug=#{source_slug}"}
     else
-      case RssFetcher.fetch(data_source) do
+      case rss_fetcher().fetch(data_source) do
         {:ok, articles} ->
           count = News.upsert_articles(articles)
 
@@ -81,5 +110,9 @@ defmodule WorldTracker.News.FetchNewsWorker do
           {:error, reason}
       end
     end
+  end
+
+  defp rss_fetcher do
+    Application.get_env(:world_tracker, :news_rss_fetcher, RssFetcher)
   end
 end

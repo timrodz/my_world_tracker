@@ -17,8 +17,30 @@ defmodule WorldTracker.Sources do
       [%DataSource{}, ...]
 
   """
-  def list_data_sources do
-    Repo.all(from data_source in DataSource, order_by: [asc: data_source.name])
+  def list_data_sources(opts \\ []) do
+    type = Keyword.get(opts, :type)
+
+    DataSource
+    |> maybe_filter_by_type(type)
+    |> order_by([data_source], asc: data_source.name)
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of news data sources.
+  """
+  def list_news_data_sources do
+    list_data_sources(type: :news)
+  end
+
+  @doc """
+  Gets a single news data source by slug.
+  """
+  def get_news_data_source_by_slug(slug) when is_binary(slug) do
+    Repo.one(
+      from data_source in DataSource,
+        where: data_source.slug == ^slug and data_source.type == :news
+    )
   end
 
   @doc """
@@ -108,5 +130,11 @@ defmodule WorldTracker.Sources do
   """
   def change_data_source(%DataSource{} = data_source, attrs \\ %{}) do
     DataSource.changeset(data_source, attrs)
+  end
+
+  defp maybe_filter_by_type(query, nil), do: query
+
+  defp maybe_filter_by_type(query, type) do
+    where(query, [data_source], data_source.type == ^type)
   end
 end

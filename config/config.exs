@@ -14,10 +14,7 @@ config :world_tracker, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"*/5 * * * *", WorldTracker.Markets.PricePoller},
-       {"*/15 * * * *", WorldTracker.News.FetchNewsWorker, args: %{source_slug: "bbc_news"}},
-       {"*/15 * * * *", WorldTracker.News.FetchNewsWorker, args: %{source_slug: "al_jazeera"}},
-       {"*/15 * * * *", WorldTracker.News.FetchNewsWorker, args: %{source_slug: "the_guardian"}},
-       {"*/15 * * * *", WorldTracker.News.FetchNewsWorker, args: %{source_slug: "npr_world"}}
+       {"*/30 * * * *", WorldTracker.News.FetchNewsWorker}
      ]}
   ],
   queues: [default: 10, market_prices: 1, news: 4],

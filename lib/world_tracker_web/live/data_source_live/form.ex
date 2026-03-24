@@ -16,7 +16,15 @@ defmodule WorldTrackerWeb.DataSourceLive.Form do
       <.form for={@form} id="data_source-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:slug]} type="text" label="Slug" />
+        <.input
+          field={@form[:type]}
+          type="select"
+          label="Type"
+          options={[{"Markets", :markets}, {"News", :news}]}
+          prompt="Choose a source type"
+        />
         <.input field={@form[:base_url]} type="text" label="Base url" />
+        <.input field={@form[:endpoint_url]} type="text" label="Endpoint url" />
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Data source</.button>
           <.button navigate={return_path(@return_to, @data_source)}>Cancel</.button>
