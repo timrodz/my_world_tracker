@@ -3,6 +3,7 @@ defmodule WorldTrackerWeb.TickerLiveTest do
 
   import Phoenix.LiveViewTest
   import WorldTracker.MarketsFixtures
+  import WorldTracker.NewsFixtures
   import WorldTracker.SourcesFixtures
 
   @invalid_attrs %{name: nil, symbol: nil, data_source_id: nil}
@@ -53,6 +54,23 @@ defmodule WorldTrackerWeb.TickerLiveTest do
       assert html =~ "some symbol"
     end
 
+    test "new ticker form only lists market data sources", %{conn: conn} do
+      market_source = data_source_fixture(%{name: "Yahoo Finance", type: :markets})
+      news_source = news_data_source_fixture(%{name: "BBC News"})
+
+      {:ok, index_live, _html} = live(conn, ~p"/tickers")
+
+      assert {:ok, form_live, _} =
+               index_live
+               |> element("a", "New Ticker")
+               |> render_click()
+               |> follow_redirect(conn, ~p"/tickers/new")
+
+      html = render(form_live)
+      assert html =~ market_source.name
+      refute html =~ news_source.name
+    end
+
     test "updates ticker in listing", %{conn: conn, ticker: ticker} do
       replacement_source = data_source_fixture()
 
@@ -86,6 +104,23 @@ defmodule WorldTrackerWeb.TickerLiveTest do
       assert html =~ "Ticker updated successfully"
       assert html =~ "some updated symbol"
       assert html =~ replacement_source.name
+    end
+
+    test "edit ticker form only lists market data sources", %{conn: conn, ticker: ticker} do
+      market_source = data_source_fixture(%{name: "Market Source", type: :markets})
+      news_source = news_data_source_fixture(%{name: "News Source"})
+
+      {:ok, index_live, _html} = live(conn, ~p"/tickers")
+
+      assert {:ok, form_live, _html} =
+               index_live
+               |> element("#tickers-#{ticker.id} a", "Edit")
+               |> render_click()
+               |> follow_redirect(conn, ~p"/tickers/#{ticker}/edit")
+
+      html = render(form_live)
+      assert html =~ market_source.name
+      refute html =~ news_source.name
     end
 
     test "deletes ticker in listing", %{conn: conn, ticker: ticker} do

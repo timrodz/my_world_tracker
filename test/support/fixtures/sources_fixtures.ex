@@ -13,7 +13,8 @@ defmodule WorldTracker.SourcesFixtures do
       |> Enum.into(%{
         base_url: "some base_url",
         name: "some name",
-        slug: "some-slug-#{System.unique_integer([:positive])}"
+        slug: "some-slug-#{System.unique_integer([:positive])}",
+        type: :markets
       })
       |> WorldTracker.Sources.create_data_source()
 

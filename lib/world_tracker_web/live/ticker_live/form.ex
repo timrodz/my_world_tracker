@@ -37,7 +37,7 @@ defmodule WorldTrackerWeb.TickerLive.Form do
   def mount(params, _session, socket) do
     {:ok,
      socket
-     |> assign(:data_source_options, Sources.data_source_options())
+     |> assign(:data_source_options, Sources.data_source_options(type: :markets))
      |> assign(:return_to, return_to(params["return_to"]))
      |> apply_action(socket.assigns.live_action, params)}
   end

@@ -62,8 +62,8 @@ defmodule WorldTracker.Sources do
     |> Repo.preload(:tickers)
   end
 
-  def data_source_options do
-    list_data_sources()
+  def data_source_options(opts \\ []) do
+    list_data_sources(opts)
     |> Enum.map(&{&1.name, &1.id})
   end
 
