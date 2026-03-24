@@ -7,6 +7,12 @@
 # General application configuration
 import Config
 
+config :world_tracker, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10],
+  repo: WorldTracker.Repo
+
 config :world_tracker,
   ecto_repos: [WorldTracker.Repo],
   generators: [timestamp_type: :utc_datetime],

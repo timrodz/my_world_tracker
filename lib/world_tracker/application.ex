@@ -12,6 +12,7 @@ defmodule WorldTracker.Application do
         WorldTrackerWeb.Telemetry,
         WorldTracker.Repo,
         {DNSCluster, query: Application.get_env(:world_tracker, :dns_cluster_query) || :ignore},
+        {Oban, Application.fetch_env!(:world_tracker, Oban)},
         {Phoenix.PubSub, name: WorldTracker.PubSub}
       ] ++ maybe_price_poller() ++ [WorldTrackerWeb.Endpoint]
 

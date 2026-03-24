@@ -1,4 +1,5 @@
 import Config
+config :world_tracker, Oban, testing: :manual
 
 # Configure your database
 #
