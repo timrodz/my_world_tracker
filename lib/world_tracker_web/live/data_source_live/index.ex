@@ -1,4 +1,5 @@
 defmodule WorldTrackerWeb.DataSourceLive.Index do
+  alias Phoenix.Endpoint
   use WorldTrackerWeb, :live_view
 
   alias WorldTracker.Sources
@@ -24,6 +25,7 @@ defmodule WorldTrackerWeb.DataSourceLive.Index do
         <:col :let={{_id, data_source}} label="Name">{data_source.name}</:col>
         <:col :let={{_id, data_source}} label="Slug">{data_source.slug}</:col>
         <:col :let={{_id, data_source}} label="Base url">{data_source.base_url}</:col>
+        <:col :let={{_id, data_source}} label="Endpoint url">{data_source.endpoint_url}</:col>
         <:action :let={{_id, data_source}}>
           <div class="sr-only">
             <.link navigate={~p"/data-sources/#{data_source}"}>Show</.link>
