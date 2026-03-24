@@ -3,6 +3,7 @@ defmodule WorldTrackerWeb.DashboardLive do
 
   alias WorldTracker.Markets
   alias WorldTracker.Markets.PricePoller
+  alias WorldTracker.News
 
   @groups [
     %{
@@ -22,25 +23,31 @@ defmodule WorldTrackerWeb.DashboardLive do
     }
   ]
 
+  @news_limit 6
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, PricePoller.topic())
+      Phoenix.PubSub.subscribe(WorldTracker.PubSub, News.topic())
     end
 
     prices = Markets.latest_prices()
+    articles = News.list_news_articles(limit: @news_limit)
 
     {:ok,
      socket
      |> assign(:page_title, "Market Dashboard")
      |> assign(:groups, grouped_prices(prices))
-     |> assign(:last_updated_at, last_updated_at(prices))}
+     |> assign(:last_updated_at, last_updated_at(prices))
+     |> stream(:news_articles, articles)}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
+      <%!-- Hero --%>
       <section class="relative overflow-hidden rounded-[2rem] border border-base-300 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.22),_transparent_32%),linear-gradient(135deg,_rgba(15,23,42,0.98),_rgba(30,41,59,0.92))] px-6 py-10 text-base-100 shadow-2xl shadow-slate-950/15 sm:px-10">
         <div class="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(56,189,248,0.14),_transparent_58%)]" />
         <div class="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -71,6 +78,7 @@ defmodule WorldTrackerWeb.DashboardLive do
         </div>
       </section>
 
+      <%!-- Market cards --%>
       <section class="grid gap-6 lg:grid-cols-3">
         <article
           :for={group <- @groups}
@@ -107,9 +115,58 @@ defmodule WorldTrackerWeb.DashboardLive do
         </article>
       </section>
 
+      <%!-- Latest news --%>
+      <section>
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-base-content">Latest World News</h2>
+          <.link navigate={~p"/news-articles"}>
+            View all <.icon name="hero-arrow-right" class="inline-block w-3.5 h-3.5" />
+          </.link>
+        </div>
+
+        <div id="dashboard-news" phx-update="stream" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <a
+            :for={{dom_id, article} <- @streams.news_articles}
+            id={dom_id}
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group flex gap-3 rounded-[1.25rem] border border-base-300 bg-base-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+          >
+            <%!-- Thumbnail --%>
+            <div
+              :if={article.image_url}
+              class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-base-200"
+            >
+              <img
+                src={article.image_url}
+                alt=""
+                class="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+
+            <div class="flex min-w-0 flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                  {article.data_source.name}
+                </span>
+                <span :if={article.published_at} class="text-xs text-base-content/35 tabular-nums">
+                  {format_date(article.published_at)}
+                </span>
+              </div>
+              <p class="line-clamp-2 text-sm font-medium leading-snug text-base-content transition-colors group-hover:text-primary">
+                {article.title}
+              </p>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <%!-- Nav links --%>
       <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <.link
-          navigate={~p"/data_sources"}
+          navigate={~p"/data-sources"}
           class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
         >
           <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">Manage</p>
@@ -129,6 +186,17 @@ defmodule WorldTrackerWeb.DashboardLive do
             Add new tracked symbols or reassign their source.
           </p>
         </.link>
+
+        <.link
+          navigate={~p"/news-articles"}
+          class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+        >
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">Browse</p>
+          <p class="mt-2 text-lg font-semibold text-base-content">World News</p>
+          <p class="mt-1 text-sm text-base-content/65">
+            Global headlines from BBC, Al Jazeera, The Guardian, and NPR.
+          </p>
+        </.link>
       </section>
     </Layouts.app>
     """
@@ -140,6 +208,12 @@ defmodule WorldTrackerWeb.DashboardLive do
      socket
      |> assign(:groups, grouped_prices(prices))
      |> assign(:last_updated_at, last_updated_at(prices))}
+  end
+
+  @impl true
+  def handle_info({:news_updated, _source_slug}, socket) do
+    articles = News.list_news_articles(limit: @news_limit)
+    {:noreply, stream(socket, :news_articles, articles, reset: true)}
   end
 
   defp grouped_prices(prices) do
@@ -165,8 +239,8 @@ defmodule WorldTrackerWeb.DashboardLive do
   end
 
   defp format_timestamp(nil), do: "Awaiting first poll"
+  defp format_timestamp(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
 
-  defp format_timestamp(datetime) do
-    Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
-  end
+  defp format_date(nil), do: ""
+  defp format_date(dt), do: Calendar.strftime(dt, "%b %d")
 end

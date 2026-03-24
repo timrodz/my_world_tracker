@@ -35,35 +35,62 @@ defmodule WorldTrackerWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
+    <header class="navbar px-4 sm:px-6 lg:px-8 border-b border-base-300 bg-base-100/80 backdrop-blur sticky top-0 z-50">
       <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
+        <.link navigate={~p"/"} class="flex items-center gap-2 group">
+          <img
+            src={~p"/images/logo.svg"}
+            width="32"
+            class="opacity-80 group-hover:opacity-100 transition"
+          />
+          <span class="text-sm font-bold tracking-tight text-base-content group-hover:text-primary transition">
+            World Tracker
+          </span>
+        </.link>
       </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
+      <nav class="flex-none hidden sm:flex">
+        <ul class="flex items-center gap-1">
           <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
+            <.link
+              navigate={~p"/"}
+              class="px-3 py-2 rounded-lg text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-200 transition"
+            >
+              Dashboard
+            </.link>
           </li>
           <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
+            <.link
+              navigate={~p"/news-articles"}
+              class="px-3 py-2 rounded-lg text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-200 transition"
+            >
+              World News
+            </.link>
           </li>
           <li>
+            <.link
+              navigate={~p"/data-sources"}
+              class="px-3 py-2 rounded-lg text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-200 transition"
+            >
+              Data Sources
+            </.link>
+          </li>
+          <li>
+            <.link
+              navigate={~p"/tickers"}
+              class="px-3 py-2 rounded-lg text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-200 transition"
+            >
+              Tickers
+            </.link>
+          </li>
+          <li class="ml-2">
             <.theme_toggle />
           </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
         </ul>
-      </div>
+      </nav>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
+    <main class="px-4 py-10 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl space-y-6">
         {render_slot(@inner_block)}
       </div>
     </main>

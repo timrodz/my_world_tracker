@@ -19,10 +19,15 @@ defmodule WorldTrackerWeb.Router do
 
     live "/", DashboardLive, :index
 
-    live "/data_sources", DataSourceLive.Index, :index
-    live "/data_sources/new", DataSourceLive.Form, :new
-    live "/data_sources/:id", DataSourceLive.Show, :show
-    live "/data_sources/:id/edit", DataSourceLive.Form, :edit
+    live "/news-articles", ArticleLive.Index, :index
+    live "/news-articles/new", ArticleLive.Form, :new
+    live "/news-articles/:id", ArticleLive.Show, :show
+    live "/news-articles/:id/edit", ArticleLive.Form, :edit
+
+    live "/data-sources", DataSourceLive.Index, :index
+    live "/data-sources/new", DataSourceLive.Form, :new
+    live "/data-sources/:id", DataSourceLive.Show, :show
+    live "/data-sources/:id/edit", DataSourceLive.Form, :edit
 
     live "/tickers", TickerLive.Index, :index
     live "/tickers/new", TickerLive.Form, :new

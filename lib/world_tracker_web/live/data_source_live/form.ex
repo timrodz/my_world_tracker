@@ -91,6 +91,6 @@ defmodule WorldTrackerWeb.DataSourceLive.Form do
     end
   end
 
-  defp return_path("index", _data_source), do: ~p"/data_sources"
-  defp return_path("show", data_source), do: ~p"/data_sources/#{data_source}"
+  defp return_path("index", _data_source), do: ~p"/data-sources"
+  defp return_path("show", data_source), do: ~p"/data-sources/#{data_source}"
 end

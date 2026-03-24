@@ -11,10 +11,10 @@ defmodule WorldTrackerWeb.DataSourceLive.Show do
         {@data_source.name}
         <:subtitle>Manage this source and review the tickers assigned to it.</:subtitle>
         <:actions>
-          <.button navigate={~p"/data_sources"}>
+          <.button navigate={~p"/data-sources"}>
             <.icon name="hero-arrow-left" />
           </.button>
-          <.button variant="primary" navigate={~p"/data_sources/#{@data_source}/edit?return_to=show"}>
+          <.button variant="primary" navigate={~p"/data-sources/#{@data_source}/edit?return_to=show"}>
             <.icon name="hero-pencil-square" /> Edit Data Source
           </.button>
         </:actions>

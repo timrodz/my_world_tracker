@@ -21,20 +21,20 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
     setup [:create_data_source]
 
     test "lists all data_sources", %{conn: conn, data_source: data_source} do
-      {:ok, _index_live, html} = live(conn, ~p"/data_sources")
+      {:ok, _index_live, html} = live(conn, ~p"/data-sources")
 
       assert html =~ "Listing Data Sources"
       assert html =~ data_source.name
     end
 
     test "saves new data_source", %{conn: conn} do
-      {:ok, index_live, _html} = live(conn, ~p"/data_sources")
+      {:ok, index_live, _html} = live(conn, ~p"/data-sources")
 
       assert {:ok, form_live, _} =
                index_live
                |> element("a", "New Data Source")
                |> render_click()
-               |> follow_redirect(conn, ~p"/data_sources/new")
+               |> follow_redirect(conn, ~p"/data-sources/new")
 
       assert render(form_live) =~ "New Data source"
 
@@ -46,7 +46,7 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
                form_live
                |> form("#data_source-form", data_source: @create_attrs)
                |> render_submit()
-               |> follow_redirect(conn, ~p"/data_sources")
+               |> follow_redirect(conn, ~p"/data-sources")
 
       html = render(index_live)
       assert html =~ "Data source created successfully"
@@ -54,13 +54,13 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
     end
 
     test "updates data_source in listing", %{conn: conn, data_source: data_source} do
-      {:ok, index_live, _html} = live(conn, ~p"/data_sources")
+      {:ok, index_live, _html} = live(conn, ~p"/data-sources")
 
       assert {:ok, form_live, _html} =
                index_live
                |> element("#data_sources-#{data_source.id} a", "Edit")
                |> render_click()
-               |> follow_redirect(conn, ~p"/data_sources/#{data_source}/edit")
+               |> follow_redirect(conn, ~p"/data-sources/#{data_source}/edit")
 
       assert render(form_live) =~ "Edit Data source"
 
@@ -72,7 +72,7 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
                form_live
                |> form("#data_source-form", data_source: @update_attrs)
                |> render_submit()
-               |> follow_redirect(conn, ~p"/data_sources")
+               |> follow_redirect(conn, ~p"/data-sources")
 
       html = render(index_live)
       assert html =~ "Data source updated successfully"
@@ -80,7 +80,7 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
     end
 
     test "deletes data_source in listing", %{conn: conn, data_source: data_source} do
-      {:ok, index_live, _html} = live(conn, ~p"/data_sources")
+      {:ok, index_live, _html} = live(conn, ~p"/data-sources")
 
       assert index_live
              |> element("#data_sources-#{data_source.id} a", "Delete")
@@ -94,20 +94,20 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
     setup [:create_data_source]
 
     test "displays data_source", %{conn: conn, data_source: data_source} do
-      {:ok, _show_live, html} = live(conn, ~p"/data_sources/#{data_source}")
+      {:ok, _show_live, html} = live(conn, ~p"/data-sources/#{data_source}")
 
       assert html =~ data_source.name
       assert html =~ data_source.name
     end
 
     test "updates data_source and returns to show", %{conn: conn, data_source: data_source} do
-      {:ok, show_live, _html} = live(conn, ~p"/data_sources/#{data_source}")
+      {:ok, show_live, _html} = live(conn, ~p"/data-sources/#{data_source}")
 
       assert {:ok, form_live, _} =
                show_live
                |> element("a", "Edit")
                |> render_click()
-               |> follow_redirect(conn, ~p"/data_sources/#{data_source}/edit?return_to=show")
+               |> follow_redirect(conn, ~p"/data-sources/#{data_source}/edit?return_to=show")
 
       assert render(form_live) =~ "Edit Data source"
 
@@ -119,7 +119,7 @@ defmodule WorldTrackerWeb.DataSourceLiveTest do
                form_live
                |> form("#data_source-form", data_source: @update_attrs)
                |> render_submit()
-               |> follow_redirect(conn, ~p"/data_sources/#{data_source}")
+               |> follow_redirect(conn, ~p"/data-sources/#{data_source}")
 
       html = render(show_live)
       assert html =~ "Data source updated successfully"
