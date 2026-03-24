@@ -125,41 +125,12 @@ defmodule WorldTrackerWeb.DashboardLive do
         </div>
 
         <div id="dashboard-news" phx-update="stream" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <a
+          <.article_card
             :for={{dom_id, article} <- @streams.news_articles}
             id={dom_id}
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="group flex gap-3 rounded-[1.25rem] border border-base-300 bg-base-100 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
-          >
-            <%!-- Thumbnail --%>
-            <div
-              :if={article.image_url}
-              class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-base-200"
-            >
-              <img
-                src={article.image_url}
-                alt=""
-                class="h-full w-full object-cover"
-                loading="lazy"
-              />
-            </div>
-
-            <div class="flex min-w-0 flex-col gap-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                  {article.data_source.name}
-                </span>
-                <span :if={article.published_at} class="text-xs text-base-content/35 tabular-nums">
-                  {format_date(article.published_at)}
-                </span>
-              </div>
-              <p class="line-clamp-2 text-sm font-medium leading-snug text-base-content transition-colors group-hover:text-primary">
-                {article.title}
-              </p>
-            </div>
-          </a>
+            article={article}
+            mode={:small}
+          />
         </div>
       </section>
 
@@ -240,7 +211,4 @@ defmodule WorldTrackerWeb.DashboardLive do
 
   defp format_timestamp(nil), do: "Awaiting first poll"
   defp format_timestamp(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
-
-  defp format_date(nil), do: ""
-  defp format_date(dt), do: Calendar.strftime(dt, "%b %d")
 end

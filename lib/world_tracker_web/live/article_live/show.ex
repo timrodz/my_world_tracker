@@ -23,7 +23,7 @@ defmodule WorldTrackerWeb.ArticleLive.Show do
       <.list>
         <:item title="Guid">{@article.guid}</:item>
         <:item title="Title">{@article.title}</:item>
-        <:item title="Description">{@article.description}</:item>
+        <:item title="Description">{raw(@article.description)}</:item>
         <:item title="Url">{@article.url}</:item>
         <:item title="Image url">{@article.image_url}</:item>
         <:item title="Author">{@article.author}</:item>
