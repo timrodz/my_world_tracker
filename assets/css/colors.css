@@ -93,46 +93,38 @@
   --color-gray-900: var(--color-slate-900);
   --color-gray-950: var(--color-slate-950);
 
-  /* Semantic surface tokens — reference runtime CSS variables so they update
-     when [data-theme=dark] is applied. Using var() here means Tailwind emits
-     `background-color: var(--color-base-100)` instead of an inlined value,
-     which lets the selector-based dark override below take effect at runtime. */
-  --color-base-100: var(--ui-base-100);
-  --color-base-200: var(--ui-base-200);
-  --color-base-300: var(--ui-base-300);
-  --color-base-content: var(--ui-base-content);
-  --color-primary: var(--ui-primary);
-  --color-primary-content: var(--ui-primary-content);
-  --color-error: var(--ui-error);
-  --color-info: var(--ui-info);
-  --color-warning: var(--ui-warning);
-  --color-success: var(--ui-success);
+  /* ── Semantic surface tokens ────────────────────────────────────────────────
+     `@theme inline` tells Tailwind to emit `var(--color-*)` references in
+     the generated utilities (e.g. `.bg-base-100 { background-color: var(--color-base-100) }`)
+     rather than inlining a fixed value.  This means the [data-theme=dark]
+     overrides below take effect at runtime without any double-indirection. */
+
+  /* Light-mode defaults */
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(96% 0.001 286.375);
+  --color-base-300: oklch(92% 0.004 286.32);
+  --color-base-content: oklch(21% 0.006 285.885);
+  --color-primary: oklch(60% 0.213 252);
+  --color-primary-content: oklch(98% 0 0);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-info: oklch(58% 0.158 241.966);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-success: oklch(60% 0.118 184.704);
 }
 
-/* ── Light theme (default) ── */
-:root {
-  --ui-base-100: oklch(98% 0 0);
-  --ui-base-200: oklch(96% 0.001 286.375);
-  --ui-base-300: oklch(92% 0.004 286.32);
-  --ui-base-content: oklch(21% 0.006 285.885);
-  --ui-primary: oklch(60% 0.213 252);
-  --ui-primary-content: oklch(98% 0 0);
-  --ui-error: oklch(58% 0.253 17.585);
-  --ui-info: oklch(58% 0.158 241.966);
-  --ui-warning: oklch(66% 0.179 58.318);
-  --ui-success: oklch(60% 0.118 184.704);
-}
-
-/* ── Dark theme ── */
+/* ── Dark theme overrides ───────────────────────────────────────────────────
+   `[data-theme=dark]` has higher specificity than :root (attribute selector
+   vs. pseudo-class), so these values override the @theme inline defaults when
+   the data-theme="dark" attribute is present on the <html> element. */
 [data-theme=dark] {
-  --ui-base-100: oklch(30.33% 0.016 252.42);
-  --ui-base-200: oklch(25.26% 0.014 253.1);
-  --ui-base-300: oklch(20.15% 0.012 254.09);
-  --ui-base-content: oklch(97.807% 0.029 256.847);
-  --ui-primary: oklch(62% 0.233 252);
-  --ui-primary-content: oklch(98% 0.018 272.314);
-  --ui-error: oklch(58% 0.253 17.585);
-  --ui-info: oklch(58% 0.158 241.966);
-  --ui-warning: oklch(66% 0.179 58.318);
-  --ui-success: oklch(60% 0.118 184.704);
+  --color-base-100: oklch(30.33% 0.016 252.42);
+  --color-base-200: oklch(25.26% 0.014 253.1);
+  --color-base-300: oklch(20.15% 0.012 254.09);
+  --color-base-content: oklch(97.807% 0.029 256.847);
+  --color-primary: oklch(62% 0.233 252);
+  --color-primary-content: oklch(98% 0.018 272.314);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-info: oklch(58% 0.158 241.966);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-success: oklch(60% 0.118 184.704);
 }

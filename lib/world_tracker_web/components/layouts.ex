@@ -35,7 +35,7 @@ defmodule WorldTrackerWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="flex items-center w-full px-4 sm:px-6 lg:px-8 border-b border-base-300 bg-base-100/80 backdrop-blur sticky top-0 z-50">
+    <header class="flex items-center min-h-16 w-full px-4 sm:px-6 lg:px-8 border-b border-base-300 bg-base-100/80 backdrop-blur sticky top-0 z-50">
       <div class="flex-1">
         <.link navigate={~p"/"} class="flex items-center gap-2 group">
           <img
