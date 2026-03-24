@@ -9,10 +9,10 @@ defmodule WorldTrackerWeb.CoreComponents do
   them in any way you want, based on your application growth and needs.
 
   The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
+  augmented with Petal Components, a set of HEEX components for Phoenix.
+  Here are useful references:
 
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
+    * [Petal Components](https://petal.build/components) - a good place to get
       started and see the available components.
 
     * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
@@ -56,23 +56,22 @@ defmodule WorldTrackerWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class="pointer-events-auto w-80 sm:w-96"
       {@rest}
     >
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
+        "flex items-start gap-3 rounded-lg border p-4 shadow-lg text-sm",
+        @kind == :info && "border-info-200 bg-info-50 text-info-800",
+        @kind == :error && "border-danger-200 bg-danger-50 text-danger-800"
       ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
+        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0 text-info-500 mt-0.5" />
+        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0 text-danger-500 mt-0.5" />
+        <div class="flex-1 min-w-0">
           <p :if={@title} class="font-semibold">{@title}</p>
           <p>{msg}</p>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
+        <button type="button" class="shrink-0 cursor-pointer opacity-60 hover:opacity-100 transition-opacity" aria-label={gettext("close")}>
+          <.icon name="hero-x-mark" class="size-4" />
         </button>
       </div>
     </div>
@@ -94,11 +93,12 @@ defmodule WorldTrackerWeb.CoreComponents do
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
-
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        case assigns[:variant] do
+          "primary" -> "pc-button pc-button--primary pc-button--md pc-button--radius-md"
+          _ -> "pc-button pc-button--primary-light pc-button--md pc-button--radius-md"
+        end
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -204,20 +204,22 @@ defmodule WorldTrackerWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
-      <label>
+    <div class="mb-4">
+      <label class="inline-flex items-center gap-2 cursor-pointer">
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
-        </span>
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class={
+            @class ||
+              "h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-gray-800"
+          }
+          {@rest}
+        />
+        <span class="text-sm font-medium text-base-content">{@label}</span>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -226,13 +228,21 @@ defmodule WorldTrackerWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="block text-sm font-medium text-base-content mb-1">{@label}</span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class ||
+              "block w-full rounded-md border bg-base-100 text-base-content px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1",
+            @errors == [] &&
+              "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-500",
+            @errors != [] &&
+              (@error_class ||
+                 "border-danger-500 focus:border-danger-500 focus:ring-danger-500")
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -247,15 +257,20 @@ defmodule WorldTrackerWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="block text-sm font-medium text-base-content mb-1">{@label}</span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @class ||
+              "block w-full rounded-md border bg-base-100 text-base-content px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1",
+            @errors == [] &&
+              "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-500",
+            @errors != [] &&
+              (@error_class ||
+                 "border-danger-500 focus:border-danger-500 focus:ring-danger-500")
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -268,17 +283,22 @@ defmodule WorldTrackerWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="block text-sm font-medium text-base-content mb-1">{@label}</span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            @class ||
+              "block w-full rounded-md border bg-base-100 text-base-content px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1",
+            @errors == [] &&
+              "border-gray-300 dark:border-gray-600 focus:border-primary-500 focus:ring-primary-500",
+            @errors != [] &&
+              (@error_class ||
+                 "border-danger-500 focus:border-danger-500 focus:ring-danger-500")
           ]}
           {@rest}
         />
@@ -318,8 +338,8 @@ defmodule WorldTrackerWeb.CoreComponents do
   # Helper used by inputs to generate form errors
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
-      <.icon name="hero-exclamation-circle" class="size-5" />
+    <p class="mt-1.5 flex gap-2 items-center text-sm text-danger-600">
+      <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -380,34 +400,49 @@ defmodule WorldTrackerWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
-      <thead>
-        <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
-            <span class="sr-only">{gettext("Actions")}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-base-300 text-sm">
+        <thead class="bg-base-200/60">
+          <tr>
+            <th
+              :for={col <- @col}
+              class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-base-content/70"
+            >
+              {col[:label]}
+            </th>
+            <th :if={@action != []} class="px-4 py-3">
+              <span class="sr-only">{gettext("Actions")}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          id={@id}
+          phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}
+          class="divide-y divide-base-300 bg-base-100"
+        >
+          <tr
+            :for={row <- @rows}
+            id={@row_id && @row_id.(row)}
+            class={@row_click && "cursor-pointer hover:bg-base-200/50 transition-colors"}
           >
-            {render_slot(col, @row_item.(row))}
-          </td>
-          <td :if={@action != []} class="w-0 font-semibold">
-            <div class="flex gap-4">
-              <%= for action <- @action do %>
-                {render_slot(action, @row_item.(row))}
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <td
+              :for={col <- @col}
+              phx-click={@row_click && @row_click.(row)}
+              class="px-4 py-3 text-base-content"
+            >
+              {render_slot(col, @row_item.(row))}
+            </td>
+            <td :if={@action != []} class="px-4 py-3 w-0 font-semibold">
+              <div class="flex gap-4">
+                <%= for action <- @action do %>
+                  {render_slot(action, @row_item.(row))}
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     """
   end
 
@@ -427,12 +462,10 @@ defmodule WorldTrackerWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
-        </div>
+    <ul class="divide-y divide-base-300 rounded-lg border border-base-300 bg-base-100">
+      <li :for={item <- @item} class="flex items-start gap-4 px-4 py-3">
+        <span class="w-32 shrink-0 text-sm font-medium text-base-content/70">{item.title}</span>
+        <span class="flex-1 text-sm text-base-content">{render_slot(item)}</span>
       </li>
     </ul>
     """

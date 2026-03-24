@@ -84,7 +84,12 @@ defmodule WorldTrackerWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
+
+      # Petal Components — imported first so that any name conflicts are resolved
+      # in favour of our own CoreComponents which are imported below
+      use PetalComponents
+
+      # Core UI components (these shadow any conflicting Petal component names)
       import WorldTrackerWeb.CoreComponents
       import WorldTrackerWeb.ArticleComponents
 

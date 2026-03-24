@@ -69,7 +69,8 @@ defmodule WorldTracker.MixProject do
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.19"},
       {:fast_rss, "~> 0.5"},
-      {:igniter, "~> 0.5", only: [:dev]}
+      {:igniter, "~> 0.5", only: [:dev]},
+      {:petal_components, "~> 3.0"}
     ]
   end
 

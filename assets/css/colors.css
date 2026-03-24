@@ -1,0 +1,138 @@
+/* Petal Components color scale — maps named semantic colors to Tailwind palette colors.
+   Kept in a separate file so it is easy to swap themes. */
+
+@theme inline {
+  /* Primary — blue */
+  --color-primary-50: var(--color-blue-50);
+  --color-primary-100: var(--color-blue-100);
+  --color-primary-200: var(--color-blue-200);
+  --color-primary-300: var(--color-blue-300);
+  --color-primary-400: var(--color-blue-400);
+  --color-primary-500: var(--color-blue-500);
+  --color-primary-600: var(--color-blue-600);
+  --color-primary-700: var(--color-blue-700);
+  --color-primary-800: var(--color-blue-800);
+  --color-primary-900: var(--color-blue-900);
+  --color-primary-950: var(--color-blue-950);
+
+  /* Secondary — pink */
+  --color-secondary-50: var(--color-pink-50);
+  --color-secondary-100: var(--color-pink-100);
+  --color-secondary-200: var(--color-pink-200);
+  --color-secondary-300: var(--color-pink-300);
+  --color-secondary-400: var(--color-pink-400);
+  --color-secondary-500: var(--color-pink-500);
+  --color-secondary-600: var(--color-pink-600);
+  --color-secondary-700: var(--color-pink-700);
+  --color-secondary-800: var(--color-pink-800);
+  --color-secondary-900: var(--color-pink-900);
+  --color-secondary-950: var(--color-pink-950);
+
+  /* Success — green */
+  --color-success-50: var(--color-green-50);
+  --color-success-100: var(--color-green-100);
+  --color-success-200: var(--color-green-200);
+  --color-success-300: var(--color-green-300);
+  --color-success-400: var(--color-green-400);
+  --color-success-500: var(--color-green-500);
+  --color-success-600: var(--color-green-600);
+  --color-success-700: var(--color-green-700);
+  --color-success-800: var(--color-green-800);
+  --color-success-900: var(--color-green-900);
+  --color-success-950: var(--color-green-950);
+
+  /* Danger — red */
+  --color-danger-50: var(--color-red-50);
+  --color-danger-100: var(--color-red-100);
+  --color-danger-200: var(--color-red-200);
+  --color-danger-300: var(--color-red-300);
+  --color-danger-400: var(--color-red-400);
+  --color-danger-500: var(--color-red-500);
+  --color-danger-600: var(--color-red-600);
+  --color-danger-700: var(--color-red-700);
+  --color-danger-800: var(--color-red-800);
+  --color-danger-900: var(--color-red-900);
+  --color-danger-950: var(--color-red-950);
+
+  /* Warning — yellow */
+  --color-warning-50: var(--color-yellow-50);
+  --color-warning-100: var(--color-yellow-100);
+  --color-warning-200: var(--color-yellow-200);
+  --color-warning-300: var(--color-yellow-300);
+  --color-warning-400: var(--color-yellow-400);
+  --color-warning-500: var(--color-yellow-500);
+  --color-warning-600: var(--color-yellow-600);
+  --color-warning-700: var(--color-yellow-700);
+  --color-warning-800: var(--color-yellow-800);
+  --color-warning-900: var(--color-yellow-900);
+  --color-warning-950: var(--color-yellow-950);
+
+  /* Info — sky */
+  --color-info-50: var(--color-sky-50);
+  --color-info-100: var(--color-sky-100);
+  --color-info-200: var(--color-sky-200);
+  --color-info-300: var(--color-sky-300);
+  --color-info-400: var(--color-sky-400);
+  --color-info-500: var(--color-sky-500);
+  --color-info-600: var(--color-sky-600);
+  --color-info-700: var(--color-sky-700);
+  --color-info-800: var(--color-sky-800);
+  --color-info-900: var(--color-sky-900);
+  --color-info-950: var(--color-sky-950);
+
+  /* Gray — slate */
+  --color-gray-50: var(--color-slate-50);
+  --color-gray-100: var(--color-slate-100);
+  --color-gray-200: var(--color-slate-200);
+  --color-gray-300: var(--color-slate-300);
+  --color-gray-400: var(--color-slate-400);
+  --color-gray-500: var(--color-slate-500);
+  --color-gray-600: var(--color-slate-600);
+  --color-gray-700: var(--color-slate-700);
+  --color-gray-800: var(--color-slate-800);
+  --color-gray-900: var(--color-slate-900);
+  --color-gray-950: var(--color-slate-950);
+
+  /* Semantic surface tokens — reference runtime CSS variables so they update
+     when [data-theme=dark] is applied. Using var() here means Tailwind emits
+     `background-color: var(--color-base-100)` instead of an inlined value,
+     which lets the selector-based dark override below take effect at runtime. */
+  --color-base-100: var(--ui-base-100);
+  --color-base-200: var(--ui-base-200);
+  --color-base-300: var(--ui-base-300);
+  --color-base-content: var(--ui-base-content);
+  --color-primary: var(--ui-primary);
+  --color-primary-content: var(--ui-primary-content);
+  --color-error: var(--ui-error);
+  --color-info: var(--ui-info);
+  --color-warning: var(--ui-warning);
+  --color-success: var(--ui-success);
+}
+
+/* ── Light theme (default) ── */
+:root {
+  --ui-base-100: oklch(98% 0 0);
+  --ui-base-200: oklch(96% 0.001 286.375);
+  --ui-base-300: oklch(92% 0.004 286.32);
+  --ui-base-content: oklch(21% 0.006 285.885);
+  --ui-primary: oklch(60% 0.213 252);
+  --ui-primary-content: oklch(98% 0 0);
+  --ui-error: oklch(58% 0.253 17.585);
+  --ui-info: oklch(58% 0.158 241.966);
+  --ui-warning: oklch(66% 0.179 58.318);
+  --ui-success: oklch(60% 0.118 184.704);
+}
+
+/* ── Dark theme ── */
+[data-theme=dark] {
+  --ui-base-100: oklch(30.33% 0.016 252.42);
+  --ui-base-200: oklch(25.26% 0.014 253.1);
+  --ui-base-300: oklch(20.15% 0.012 254.09);
+  --ui-base-content: oklch(97.807% 0.029 256.847);
+  --ui-primary: oklch(62% 0.233 252);
+  --ui-primary-content: oklch(98% 0.018 272.314);
+  --ui-error: oklch(58% 0.253 17.585);
+  --ui-info: oklch(58% 0.158 241.966);
+  --ui-warning: oklch(66% 0.179 58.318);
+  --ui-success: oklch(60% 0.118 184.704);
+}
