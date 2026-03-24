@@ -70,6 +70,77 @@ defmodule WorldTrackerWeb.ArticleLiveTest do
         args: %{"source_slug" => source.slug}
       )
     end
+
+    test "shows pagination controls when multiple pages exist", %{conn: conn} do
+      source = news_data_source_fixture(%{name: "BBC News"})
+
+      # Create 8 articles to ensure we have multiple pages (6 per page)
+      for i <- 1..8 do
+        article_fixture(%{
+          title: "Article #{i}",
+          data_source_id: source.id,
+          guid: "guid-#{i}"
+        })
+      end
+
+      {:ok, _live, html} = live(conn, ~p"/news-articles?source=#{source.slug}")
+
+      # Should show pagination controls
+      assert html =~ "Showing"
+      assert html =~ "of"
+      assert html =~ "results"
+    end
+
+    test "does not show pagination controls when only one page", %{conn: conn} do
+      # Create only 3 articles (less than 6 per page)
+      for i <- 1..3 do
+        article_fixture(%{
+          title: "Single Page Article #{i}",
+          guid: "single-page-guid-#{i}"
+        })
+      end
+
+      {:ok, _live, html} = live(conn, ~p"/news-articles")
+
+      # Should not show pagination controls
+      refute html =~ "Showing"
+      refute html =~ "of"
+      refute html =~ "results"
+    end
+
+    test "pagination navigation works correctly", %{conn: conn} do
+      source = news_data_source_fixture(%{name: "Test Source"})
+
+      # Create 10 articles to have 2 pages
+      for i <- 1..10 do
+        article_fixture(%{
+          title: "Test Article #{i}",
+          data_source_id: source.id,
+          guid: "test-guid-#{i}"
+        })
+      end
+
+      {:ok, live, _html} = live(conn, ~p"/news-articles?source=#{source.slug}")
+
+      # Click next page button using the desktop version (with chevron icon)
+      html =
+        live
+        |> element("nav[aria-label='Pagination'] a:last-child")
+        |> render_click()
+
+      # Should show page 2 content
+      assert html =~ "Showing"
+      assert html =~ "of"
+
+      # Click previous page button (desktop version)
+      html =
+        live
+        |> element("nav[aria-label='Pagination'] a:first-child")
+        |> render_click()
+
+      # Should be back on page 1
+      assert html =~ "Showing"
+    end
   end
 
   describe "Show" do

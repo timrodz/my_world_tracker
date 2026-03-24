@@ -15,9 +15,11 @@ defmodule WorldTracker.News do
   @doc """
   Returns the list of news_articles, ordered by most recent first,
   optionally filtered by data_source slug.
+  Supports pagination via limit and offset options.
   """
   def list_news_articles(opts \\ []) do
     limit = Keyword.get(opts, :limit, 50)
+    offset = Keyword.get(opts, :offset, 0)
     source_slug = Keyword.get(opts, :source)
 
     Article
@@ -31,8 +33,28 @@ defmodule WorldTracker.News do
     end)
     |> order_by([a], desc_nulls_last: a.published_at, desc: a.inserted_at)
     |> limit(^limit)
+    |> offset(^offset)
     |> preload(:data_source)
     |> Repo.all()
+  end
+
+  @doc """
+  Returns the total count of news_articles, optionally filtered by data_source slug.
+  """
+  def count_news_articles(opts \\ []) do
+    source_slug = Keyword.get(opts, :source)
+
+    Article
+    |> join(:inner, [a], ds in assoc(a, :data_source))
+    |> then(fn q ->
+      if source_slug do
+        where(q, [a, ds], ds.slug == ^source_slug)
+      else
+        q
+      end
+    end)
+    |> select([a], count(a.id))
+    |> Repo.one()
   end
 
   @doc """

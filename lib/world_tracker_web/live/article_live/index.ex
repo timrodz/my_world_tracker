@@ -5,43 +5,72 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
   alias WorldTracker.News.FetchNewsWorker
   alias WorldTracker.Sources
 
+  @articles_per_page 6
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, News.topic())
     end
 
-    articles = News.list_news_articles()
-
     {:ok,
      socket
      |> assign(:page_title, "World News")
      |> assign(:sources, source_filters())
      |> assign(:active_source, nil)
-     |> assign(:articles_empty?, articles == [])
-     |> stream(:news_articles, articles)}
+     |> assign(:page, 1)
+     |> assign(:per_page, @articles_per_page)}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
     source_slug = params["source"]
-    articles = News.list_news_articles(source: source_slug)
+    page = parse_page(params["page"])
+    per_page = socket.assigns.per_page
+    offset = (page - 1) * per_page
+
+    articles = News.list_news_articles(source: source_slug, limit: per_page, offset: offset)
+    total_count = News.count_news_articles(source: source_slug)
+    total_pages = max(ceil(total_count / per_page), 1)
 
     {:noreply,
      socket
      |> assign(:sources, source_filters())
      |> assign(:active_source, source_slug)
+     |> assign(:page, page)
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
      |> assign(:articles_empty?, articles == [])
      |> stream(:news_articles, articles, reset: true)}
   end
 
+  defp parse_page(nil), do: 1
+
+  defp parse_page(page) when is_binary(page) do
+    case Integer.parse(page) do
+      {num, _} when num > 0 -> num
+      _ -> 1
+    end
+  end
+
+  defp parse_page(_), do: 1
+
   @impl true
   def handle_info({:news_updated, _source_slug}, socket) do
-    articles = News.list_news_articles(source: socket.assigns.active_source)
+    source_slug = socket.assigns.active_source
+    page = socket.assigns.page
+    per_page = socket.assigns.per_page
+    offset = (page - 1) * per_page
+
+    articles = News.list_news_articles(source: source_slug, limit: per_page, offset: offset)
+    total_count = News.count_news_articles(source: source_slug)
+    total_pages = max(ceil(total_count / per_page), 1)
 
     {:noreply,
      socket
      |> assign(:sources, source_filters())
+     |> assign(:total_pages, total_pages)
+     |> assign(:total_count, total_count)
      |> assign(:articles_empty?, articles == [])
      |> stream(:news_articles, articles, reset: true)}
   end
@@ -147,6 +176,75 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
           article={article}
         />
       </div>
+
+      <%!-- Pagination controls --%>
+      <div
+        :if={@total_pages > 1}
+        class="flex items-center justify-between border-t border-base-300 bg-base-100 px-4 py-3 sm:px-6"
+      >
+        <div class="flex flex-1 justify-between sm:hidden">
+          <.link
+            :if={@page > 1}
+            patch={pagination_path(@active_source, @page - 1)}
+            class="relative inline-flex items-center rounded-md border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content hover:bg-base-200"
+          >
+            Previous
+          </.link>
+          <.link
+            :if={@page < @total_pages}
+            patch={pagination_path(@active_source, @page + 1)}
+            class="relative ml-3 inline-flex items-center rounded-md border border-base-300 bg-base-100 px-4 py-2 text-sm font-medium text-base-content hover:bg-base-200"
+          >
+            Next
+          </.link>
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-base-content/70">
+              Showing <span class="font-medium">{(@page - 1) * @per_page + 1}</span>
+              to <span class="font-medium">{min(@page * @per_page, @total_count)}</span>
+              of <span class="font-medium">{@total_count}</span>
+              results
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <.link
+                :if={@page > 1}
+                patch={pagination_path(@active_source, @page - 1)}
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-base-content/70 ring-1 ring-inset ring-base-300 hover:bg-base-200 focus:z-20 focus:outline-offset-0"
+              >
+                <span class="sr-only">Previous</span>
+                <.icon name="hero-chevron-left" class="h-5 w-5" />
+              </.link>
+
+              <%= for page_num <- pagination_range(@page, @total_pages) do %>
+                <.link
+                  patch={pagination_path(@active_source, page_num)}
+                  class={[
+                    "relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-base-300 focus:z-20 focus:outline-offset-0",
+                    if(page_num == @page,
+                      do: "z-10 bg-primary text-primary-content focus:bg-primary",
+                      else: "text-base-content/70 hover:bg-base-200"
+                    )
+                  ]}
+                >
+                  {page_num}
+                </.link>
+              <% end %>
+
+              <.link
+                :if={@page < @total_pages}
+                patch={pagination_path(@active_source, @page + 1)}
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-base-content/70 ring-1 ring-inset ring-base-300 hover:bg-base-200 focus:z-20 focus:outline-offset-0"
+              >
+                <span class="sr-only">Next</span>
+                <.icon name="hero-chevron-right" class="h-5 w-5" />
+              </.link>
+            </nav>
+          </div>
+        </div>
+      </div>
     </Layouts.app>
     """
   end
@@ -166,6 +264,31 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
     case Enum.find(source_filters(), &(&1.slug == slug)) do
       %{label: label} -> label
       nil -> slug
+    end
+  end
+
+  defp pagination_path(source_slug, page) do
+    if source_slug do
+      ~p"/news-articles?source=#{source_slug}&page=#{page}"
+    else
+      ~p"/news-articles?page=#{page}"
+    end
+  end
+
+  defp pagination_range(current_page, total_pages) do
+    cond do
+      total_pages <= 7 ->
+        Enum.to_list(1..total_pages)
+
+      current_page <= 3 ->
+        Enum.to_list(1..5) ++ [total_pages - 1, total_pages]
+
+      current_page >= total_pages - 2 ->
+        [1, 2] ++ Enum.to_list((total_pages - 4)..total_pages)
+
+      true ->
+        [1, 2] ++
+          Enum.to_list((current_page - 1)..(current_page + 1)) ++ [total_pages - 1, total_pages]
     end
   end
 end
