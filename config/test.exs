@@ -1,5 +1,9 @@
 import Config
-config :world_tracker, Oban, testing: :manual
+
+config :world_tracker, Oban,
+  testing: :manual,
+  plugins: false,
+  queues: false
 
 # Configure your database
 #
@@ -36,5 +40,3 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
-
-config :world_tracker, enable_price_poller: false

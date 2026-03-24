@@ -9,6 +9,10 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
+## Project docs
+
+* [Price poller architecture and operations](docs/PRICE_POLLER.md)
+
 ## Learn more
 
 * Official website: https://www.phoenixframework.org/

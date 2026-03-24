@@ -10,13 +10,14 @@ import Config
 config :world_tracker, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10],
+  plugins: [{Oban.Plugins.Cron, crontab: [{"* * * * *", WorldTracker.Markets.PricePoller}]}],
+  queues: [default: 10, market_prices: 1],
   repo: WorldTracker.Repo
 
 config :world_tracker,
   ecto_repos: [WorldTracker.Repo],
   generators: [timestamp_type: :utc_datetime],
-  enable_price_poller: true
+  market_quote_fetchers: %{"yahoo_finance" => WorldTracker.Markets.YahooFinance}
 
 config :pythonx, :uv_init,
   pyproject_toml: """
