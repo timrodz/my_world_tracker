@@ -8,7 +8,7 @@ defmodule WorldTracker.CountriesTest do
 
     import WorldTracker.CountriesFixtures
 
-    @invalid_attrs %{name: nil}
+    @invalid_attrs %{name: nil, alpha2: nil}
 
     test "list_countries/0 returns all countries" do
       country = country_fixture()
@@ -20,12 +20,12 @@ defmodule WorldTracker.CountriesTest do
       assert Countries.get_country!(country.id) == country
     end
 
-    test "create_country/1 with valid data creates a country and country_code" do
+    test "create_country/1 with valid data creates a country" do
       valid_attrs = %{name: "some name", alpha2: "XX"}
 
       assert {:ok, %Country{} = country} = Countries.create_country(valid_attrs)
       assert country.name == "some name"
-      assert country.country_code.alpha2_code == "XX"
+      assert country.alpha2_code == "XX"
     end
 
     test "create_country/1 with invalid data returns error changeset" do
@@ -38,7 +38,7 @@ defmodule WorldTracker.CountriesTest do
 
       assert {:ok, %Country{} = country} = Countries.update_country(country, update_attrs)
       assert country.name == "some updated name"
-      assert country.country_code.alpha2_code == "YY"
+      assert country.alpha2_code == "YY"
     end
 
     test "update_country/2 with invalid data returns error changeset" do

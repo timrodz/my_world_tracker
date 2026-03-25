@@ -42,7 +42,7 @@ defmodule WorldTracker.Repo.Migrations.SeedOilFacilities do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     alpha2_to_country_id =
-      repo().all(from cc in "country_codes", select: {cc.alpha2_code, cc.country_id})
+      repo().all(from c in "countries", select: {c.alpha2_code, c.id})
       |> Map.new()
 
     rows =

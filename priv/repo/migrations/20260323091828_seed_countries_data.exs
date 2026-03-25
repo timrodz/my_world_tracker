@@ -1,34 +1,16 @@
 defmodule WorldTracker.Repo.Migrations.SeedCountriesData do
   use Ecto.Migration
 
-  import Ecto.Query
-
   def change do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     country_rows =
       raw_countries()
-      |> Enum.map(fn {_alpha2, name} ->
-        %{name: name, inserted_at: now, updated_at: now}
+      |> Enum.map(fn {alpha2, name} ->
+        %{alpha2_code: alpha2, name: name, inserted_at: now, updated_at: now}
       end)
 
     repo().insert_all("countries", country_rows, on_conflict: :nothing)
-
-    # Build name → id map to create country_codes
-    name_to_id =
-      repo().all(from c in "countries", select: {c.name, c.id})
-      |> Map.new()
-
-    code_rows =
-      raw_countries()
-      |> Enum.flat_map(fn {alpha2, name} ->
-        case Map.get(name_to_id, name) do
-          nil -> []
-          id -> [%{country_id: id, alpha2_code: alpha2, inserted_at: now, updated_at: now}]
-        end
-      end)
-
-    repo().insert_all("country_codes", code_rows, on_conflict: :nothing)
   end
 
   defp raw_countries do

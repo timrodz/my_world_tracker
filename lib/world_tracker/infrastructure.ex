@@ -16,7 +16,7 @@ defmodule WorldTracker.Infrastructure do
   def list_locations do
     Location
     |> order_by([l], asc: l.type, asc: l.name)
-    |> preload(country: :country_code)
+    |> preload(:country)
     |> Repo.all()
   end
 
@@ -27,7 +27,7 @@ defmodule WorldTracker.Infrastructure do
     Location
     |> where([l], l.type == ^type)
     |> order_by([l], asc: l.name)
-    |> preload(country: :country_code)
+    |> preload(:country)
     |> Repo.all()
   end
 
@@ -38,7 +38,7 @@ defmodule WorldTracker.Infrastructure do
     Location
     |> where([l], l.type == :data_center)
     |> order_by([l], asc: l.operator, asc: l.name)
-    |> preload(country: :country_code)
+    |> preload(:country)
     |> Repo.all()
   end
 
@@ -49,7 +49,7 @@ defmodule WorldTracker.Infrastructure do
     Location
     |> where([l], l.type == :oil_facility)
     |> order_by([l], asc: l.subtype, asc: l.name)
-    |> preload(country: :country_code)
+    |> preload(:country)
     |> Repo.all()
   end
 

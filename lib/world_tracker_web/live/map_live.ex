@@ -137,6 +137,6 @@ defmodule WorldTrackerWeb.MapLive do
   end
 
   defp get_alpha2(nil), do: nil
-  defp get_alpha2(%{country_code: %{alpha2_code: code}}), do: code
+  defp get_alpha2(%{alpha2_code: code}), do: code
   defp get_alpha2(_), do: nil
 end
