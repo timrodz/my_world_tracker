@@ -6,6 +6,8 @@
 @source "../js";
 @source "../../lib/world_tracker_web";
 
+@import "../node_modules/leaflet/dist/leaflet.css";
+
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
 @plugin "../vendor/heroicons";
