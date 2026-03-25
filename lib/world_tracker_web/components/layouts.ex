@@ -35,7 +35,7 @@ defmodule WorldTrackerWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8 border-b border-base-300 bg-base-100/80 backdrop-blur sticky top-0 z-50">
+    <header class="flex items-center min-h-16 w-full px-4 sm:px-6 lg:px-8 border-b border-base-300 bg-base-100/80 backdrop-blur sticky top-0 z-50">
       <div class="flex-1">
         <.link navigate={~p"/"} class="flex items-center gap-2 group">
           <img
@@ -111,7 +111,7 @@ defmodule WorldTrackerWeb.Layouts do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id} aria-live="polite">
+    <div id={@id} aria-live="polite" class="fixed top-4 end-4 z-50 flex flex-col gap-2 pointer-events-none">
       <.flash kind={:info} flash={@flash} />
       <.flash kind={:error} flash={@flash} />
 
@@ -149,8 +149,8 @@ defmodule WorldTrackerWeb.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+    <div class="relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
+      <div class="absolute w-1/3 h-full rounded-full border border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
 
       <button
         class="flex p-2 cursor-pointer w-1/3"

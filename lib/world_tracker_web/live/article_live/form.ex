@@ -22,8 +22,8 @@ defmodule WorldTrackerWeb.ArticleLive.Form do
         <.input field={@form[:author]} type="text" label="Author" />
         <.input field={@form[:published_at]} type="datetime-local" label="Published at" />
         <footer>
-          <.button phx-disable-with="Saving..." variant="primary">Save Article</.button>
-          <.button navigate={return_path(@return_to, @article)}>Cancel</.button>
+          <.button phx-disable-with="Saving..." color="primary">Save Article</.button>
+          <.button link_type="a" to={return_path(@return_to, @article)}>Cancel</.button>
         </footer>
       </.form>
     </Layouts.app>

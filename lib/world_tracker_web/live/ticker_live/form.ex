@@ -25,8 +25,8 @@ defmodule WorldTrackerWeb.TickerLive.Form do
         <.input field={@form[:symbol]} type="text" label="Symbol" />
         <.input field={@form[:name]} type="text" label="Name" />
         <footer>
-          <.button phx-disable-with="Saving..." variant="primary">Save Ticker</.button>
-          <.button navigate={return_path(@return_to, @ticker)}>Cancel</.button>
+          <.button phx-disable-with="Saving..." color="primary">Save Ticker</.button>
+          <.button link_type="a" to={return_path(@return_to, @ticker)}>Cancel</.button>
         </footer>
       </.form>
     </Layouts.app>

@@ -117,7 +117,7 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
           </div>
 
           <div class="flex flex-wrap gap-3">
-            <.button id="fetch-all-news" variant="primary" phx-click="fetch_all">
+            <.button id="fetch-all-news" color="primary" phx-click="fetch_all">
               <.icon name="hero-arrow-path" class="size-4" /> Refresh all sources
             </.button>
           </div>

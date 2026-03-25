@@ -13,10 +13,14 @@ defmodule WorldTrackerWeb.TickerLive.Show do
           The symbol, source, and recent price snapshots for this tracked instrument.
         </:subtitle>
         <:actions>
-          <.button navigate={~p"/tickers"}>
+          <.button link_type="a" to={~p"/tickers"}>
             <.icon name="hero-arrow-left" />
           </.button>
-          <.button variant="primary" navigate={~p"/tickers/#{@ticker}/edit?return_to=show"}>
+          <.button
+            link_type="live_patch"
+            color="primary"
+            to={~p"/tickers/#{@ticker}/edit?return_to=show"}
+          >
             <.icon name="hero-pencil-square" /> Edit Ticker
           </.button>
         </:actions>
@@ -47,17 +51,26 @@ defmodule WorldTrackerWeb.TickerLive.Show do
           :if={@ticker.ticker_prices != []}
           class="overflow-hidden rounded-2xl border border-base-300"
         >
-          <table class="table">
-            <thead>
+          <table class="min-w-full divide-y divide-base-300 text-sm">
+            <thead class="bg-base-200/60">
               <tr>
-                <th>Fetched At</th>
-                <th class="text-right">Price</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-base-content/70">
+                  Fetched At
+                </th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-base-content/70">
+                  Price
+                </th>
               </tr>
             </thead>
-            <tbody>
-              <tr :for={ticker_price <- @ticker.ticker_prices}>
-                <td>{Calendar.strftime(ticker_price.fetched_at, "%Y-%m-%d %H:%M:%S UTC")}</td>
-                <td class="text-right font-semibold">
+            <tbody class="divide-y divide-base-300 bg-base-100">
+              <tr
+                :for={ticker_price <- @ticker.ticker_prices}
+                class="hover:bg-base-200/50 transition-colors"
+              >
+                <td class="px-4 py-3 text-base-content">
+                  {Calendar.strftime(ticker_price.fetched_at, "%Y-%m-%d %H:%M:%S UTC")}
+                </td>
+                <td class="px-4 py-3 text-right font-semibold text-base-content">
                   <.market_price price={ticker_price.price} currency_symbol="$" decimals={2} />
                 </td>
               </tr>

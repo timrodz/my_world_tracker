@@ -11,10 +11,14 @@ defmodule WorldTrackerWeb.ArticleLive.Show do
         Article {@article.id}
         <:subtitle>This is a article record from your database.</:subtitle>
         <:actions>
-          <.button navigate={~p"/news-articles"}>
+          <.button link_type="a" to={~p"/news-articles"}>
             <.icon name="hero-arrow-left" />
           </.button>
-          <.button variant="primary" navigate={~p"/news-articles/#{@article}/edit?return_to=show"}>
+          <.button
+            link_type="live_patch"
+            color="primary"
+            to={~p"/news-articles/#{@article}/edit?return_to=show"}
+          >
             <.icon name="hero-pencil-square" /> Edit article
           </.button>
         </:actions>

@@ -11,10 +11,14 @@ defmodule WorldTrackerWeb.DataSourceLive.Show do
         {@data_source.name}
         <:subtitle>Manage this source and review the tickers assigned to it.</:subtitle>
         <:actions>
-          <.button navigate={~p"/data-sources"}>
+          <.button link_type="a" to={~p"/data-sources"}>
             <.icon name="hero-arrow-left" />
           </.button>
-          <.button variant="primary" navigate={~p"/data-sources/#{@data_source}/edit?return_to=show"}>
+          <.button
+            link_type="live_patch"
+            color="primary"
+            to={~p"/data-sources/#{@data_source}/edit?return_to=show"}
+          >
             <.icon name="hero-pencil-square" /> Edit Data Source
           </.button>
         </:actions>
@@ -37,7 +41,7 @@ defmodule WorldTrackerWeb.DataSourceLive.Show do
               Each ticker inherits its update strategy from this source.
             </p>
           </div>
-          <.button navigate={~p"/tickers/new"}>Add Ticker</.button>
+          <.button link_type="a" to={~p"/tickers/new"}>Add Ticker</.button>
         </div>
 
         <div

@@ -88,6 +88,25 @@ defmodule WorldTrackerWeb do
       import WorldTrackerWeb.CoreComponents
       import WorldTrackerWeb.ArticleComponents
 
+      # Petal Components are available to use in individual LiveViews and
+      # components as needed. Import specific modules to avoid conflicts with
+      # the project's own CoreComponents (Button, Input, Table, Icon).
+      #
+      # Example — import only the modules you need:
+      #   import PetalComponents.Badge
+      import PetalComponents.Button
+      import PetalComponents.Table
+      import PetalComponents.Icon
+      import PetalComponents.Input
+      import PetalComponents.Form
+      #   import PetalComponents.Modal
+      #   import PetalComponents.Accordion
+      #
+      # Petal modules that do NOT conflict with CoreComponents and are safe to
+      # import globally (if desired):
+      #   Accordion, Alert, Avatar, Badge, Breadcrumbs, ButtonGroup, Card,
+      #   Container, Dropdown, Loading, Modal, Pagination, Progress, SlideOver
+
       # Common modules used in templates
       alias Phoenix.LiveView.JS
       alias WorldTrackerWeb.Layouts
