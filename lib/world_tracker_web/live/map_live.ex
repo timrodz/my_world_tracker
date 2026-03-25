@@ -88,9 +88,8 @@ defmodule WorldTrackerWeb.MapLive do
         data-ships={Jason.encode!(Enum.map(@ships, &ship_json/1))}
         data-data-centers={Jason.encode!(Enum.map(@data_centers, &dc_json/1))}
         data-oil-facilities={Jason.encode!(Enum.map(@oil_facilities, &oil_json/1))}
-        class="h-[65vh] min-h-[400px] w-full rounded-[2rem] overflow-hidden border border-base-300 shadow-lg"
-      >
-      </div>
+        class="h-[65vh] min-h-[400px] w-full rounded-sm overflow-hidden border border-base-300 shadow-lg"
+      />
     </Layouts.app>
     """
   end

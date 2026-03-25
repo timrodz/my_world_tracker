@@ -3,6 +3,8 @@ defmodule WorldTrackerWeb.DashboardLive do
 
   alias WorldTracker.Markets
   alias WorldTracker.Markets.PricePoller
+  alias WorldTracker.Shipping
+  alias WorldTracker.Infrastructure
   alias WorldTracker.News
 
   @groups [
@@ -34,17 +36,24 @@ defmodule WorldTrackerWeb.DashboardLive do
   def mount(_params, _session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, PricePoller.topic())
+      Phoenix.PubSub.subscribe(WorldTracker.PubSub, Shipping.topic())
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, News.topic())
     end
 
     prices = Markets.latest_prices()
     articles = News.list_news_articles(limit: @news_limit)
+    ships = Shipping.list_ships(limit: 500)
+    data_centers = Infrastructure.list_data_centers()
+    oil_facilities = Infrastructure.list_oil_facilities()
 
     {:ok,
      socket
      |> assign(:page_title, "Market Dashboard")
      |> assign(:groups, grouped_prices(prices))
      |> assign(:last_updated_at, last_updated_at(prices))
+     |> assign(:ships, ships)
+     |> assign(:data_centers, data_centers)
+     |> assign(:oil_facilities, oil_facilities)
      |> stream(:news_articles, articles)}
   end
 
@@ -118,6 +127,20 @@ defmodule WorldTrackerWeb.DashboardLive do
             </div>
           </div>
         </article>
+      </section>
+
+      <%!-- World map --%>
+      <section>
+        <h2 class="mb-4 text-xl font-semibold text-base-content">Live World Map</h2>
+        <div
+          id="world-map"
+          phx-hook="WorldMap"
+          phx-update="ignore"
+          data-ships={Jason.encode!(Enum.map(@ships, &ship_json/1))}
+          data-data-centers={Jason.encode!(Enum.map(@data_centers, &dc_json/1))}
+          data-oil-facilities={Jason.encode!(Enum.map(@oil_facilities, &oil_json/1))}
+          class="h-[65vh] min-h-[400px] w-full rounded-sm overflow-hidden border border-base-300 shadow-lg"
+        />
       </section>
 
       <%!-- Latest news --%>
@@ -205,6 +228,11 @@ defmodule WorldTrackerWeb.DashboardLive do
     {:noreply, stream(socket, :news_articles, articles, reset: true)}
   end
 
+  @impl true
+  def handle_info({:ship_updated, ship}, socket) do
+    {:noreply, push_event(socket, "ship-updated", ship_json(ship))}
+  end
+
   defp grouped_prices(prices) do
     price_map = Map.new(prices, &{&1.symbol, &1})
 
@@ -229,4 +257,41 @@ defmodule WorldTrackerWeb.DashboardLive do
 
   defp format_timestamp(nil), do: "Awaiting first poll"
   defp format_timestamp(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp ship_json(ship) do
+    %{
+      mmsi: ship.mmsi,
+      name: ship.name,
+      latitude: ship.latitude,
+      longitude: ship.longitude,
+      speed: ship.speed,
+      course: ship.course,
+      flag: ship.flag,
+      destination: ship.destination
+    }
+  end
+
+  defp dc_json(dc) do
+    %{
+      id: dc.id,
+      name: dc.name,
+      operator: dc.operator,
+      latitude: dc.latitude,
+      longitude: dc.longitude,
+      city: dc.city,
+      country_code: dc.country_code
+    }
+  end
+
+  defp oil_json(oil) do
+    %{
+      id: oil.id,
+      name: oil.name,
+      facility_type: oil.facility_type,
+      latitude: oil.latitude,
+      longitude: oil.longitude,
+      country_code: oil.country_code,
+      operator: oil.operator
+    }
+  end
 end
