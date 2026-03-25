@@ -8,6 +8,7 @@ defmodule WorldTracker.Shipping do
   alias WorldTracker.Repo
   alias WorldTracker.Shipping.Ship
   alias WorldTracker.Sources.DataSource
+  alias Ecto.Query.API
 
   @topic "ships"
 
@@ -48,16 +49,16 @@ defmodule WorldTracker.Shipping do
     |> Repo.insert(
       on_conflict: [
         set: [
-          name: fragment("COALESCE(EXCLUDED.name, ships.name)"),
-          latitude: fragment("COALESCE(EXCLUDED.latitude, ships.latitude)"),
-          longitude: fragment("COALESCE(EXCLUDED.longitude, ships.longitude)"),
-          speed: fragment("COALESCE(EXCLUDED.speed, ships.speed)"),
-          course: fragment("COALESCE(EXCLUDED.course, ships.course)"),
-          ship_type: fragment("COALESCE(EXCLUDED.ship_type, ships.ship_type)"),
-          flag: fragment("COALESCE(EXCLUDED.flag, ships.flag)"),
-          destination: fragment("COALESCE(EXCLUDED.destination, ships.destination)"),
-          last_seen_at: fragment("COALESCE(EXCLUDED.last_seen_at, ships.last_seen_at)"),
-          updated_at: fragment("EXCLUDED.updated_at")
+          name: API.fragment("COALESCE(EXCLUDED.name, ships.name)"),
+          latitude: API.fragment("COALESCE(EXCLUDED.latitude, ships.latitude)"),
+          longitude: API.fragment("COALESCE(EXCLUDED.longitude, ships.longitude)"),
+          speed: API.fragment("COALESCE(EXCLUDED.speed, ships.speed)"),
+          course: API.fragment("COALESCE(EXCLUDED.course, ships.course)"),
+          ship_type: API.fragment("COALESCE(EXCLUDED.ship_type, ships.ship_type)"),
+          flag: API.fragment("COALESCE(EXCLUDED.flag, ships.flag)"),
+          destination: API.fragment("COALESCE(EXCLUDED.destination, ships.destination)"),
+          last_seen_at: API.fragment("COALESCE(EXCLUDED.last_seen_at, ships.last_seen_at)"),
+          updated_at: API.fragment("EXCLUDED.updated_at")
         ]
       ],
       conflict_target: :mmsi,
