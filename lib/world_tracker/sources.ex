@@ -34,6 +34,13 @@ defmodule WorldTracker.Sources do
   end
 
   @doc """
+  Returns the list of locations data sources.
+  """
+  def list_locations_data_sources do
+    list_data_sources(type: :locations)
+  end
+
+  @doc """
   Gets a single news data source by slug.
   """
   def get_news_data_source_by_slug(slug) when is_binary(slug) do

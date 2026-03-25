@@ -4,8 +4,9 @@ defmodule WorldTracker.Sources.DataSource do
 
   alias WorldTracker.Markets.Ticker
   alias WorldTracker.News.Article
+  alias WorldTracker.Shipping.Ship
 
-  @types [:markets, :news]
+  @types [:markets, :news, :locations]
 
   schema "data_sources" do
     field :name, :string
@@ -16,6 +17,7 @@ defmodule WorldTracker.Sources.DataSource do
 
     has_many :tickers, Ticker
     has_many :articles, Article
+    has_many :ships, Ship
 
     timestamps(type: :utc_datetime)
   end

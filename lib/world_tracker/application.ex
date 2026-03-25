@@ -14,6 +14,7 @@ defmodule WorldTracker.Application do
         {DNSCluster, query: Application.get_env(:world_tracker, :dns_cluster_query) || :ignore},
         {Oban, Application.fetch_env!(:world_tracker, Oban)},
         {Phoenix.PubSub, name: WorldTracker.PubSub},
+        WorldTracker.Shipping.AisStreamClient,
         WorldTrackerWeb.Endpoint
       ]
 
