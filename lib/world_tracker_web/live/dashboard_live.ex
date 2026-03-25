@@ -145,7 +145,9 @@ defmodule WorldTrackerWeb.DashboardLive do
           navigate={~p"/map"}
           class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
         >
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">Explore</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">
+            Explore
+          </p>
           <p class="mt-2 text-lg font-semibold text-base-content">World Map</p>
           <p class="mt-1 text-sm text-base-content/65">
             Live vessels, data centers, and oil infrastructure on one map.
