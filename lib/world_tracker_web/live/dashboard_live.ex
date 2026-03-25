@@ -279,7 +279,7 @@ defmodule WorldTrackerWeb.DashboardLive do
       latitude: dc.latitude,
       longitude: dc.longitude,
       city: dc.city,
-      country_code: dc.country_code
+      country_code: get_alpha2(dc.country)
     }
   end
 
@@ -287,11 +287,15 @@ defmodule WorldTrackerWeb.DashboardLive do
     %{
       id: oil.id,
       name: oil.name,
-      facility_type: oil.facility_type,
+      facility_type: oil.subtype,
       latitude: oil.latitude,
       longitude: oil.longitude,
-      country_code: oil.country_code,
+      country_code: get_alpha2(oil.country),
       operator: oil.operator
     }
   end
+
+  defp get_alpha2(nil), do: nil
+  defp get_alpha2(%{country_code: %{alpha2_code: code}}), do: code
+  defp get_alpha2(_), do: nil
 end

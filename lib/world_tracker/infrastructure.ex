@@ -1,30 +1,55 @@
 defmodule WorldTracker.Infrastructure do
   @moduledoc """
-  The Infrastructure context — tracks static global infrastructure:
-  cloud data centers and oil/energy facilities.
+  The Infrastructure context — tracks static global infrastructure locations:
+  cloud data centers and oil/energy facilities, stored in a unified `locations`
+  table differentiated by `type` (:data_center | :oil_facility).
   """
 
   import Ecto.Query, warn: false
 
   alias WorldTracker.Repo
-  alias WorldTracker.Infrastructure.DataCenter
-  alias WorldTracker.Infrastructure.OilFacility
+  alias WorldTracker.Infrastructure.Location
 
   @doc """
-  Returns all data centers ordered by operator then name.
+  Returns all locations ordered by type then name, with country preloaded.
   """
-  def list_data_centers do
-    DataCenter
-    |> order_by([dc], asc: dc.operator, asc: dc.name)
+  def list_locations do
+    Location
+    |> order_by([l], asc: l.type, asc: l.name)
+    |> preload(country: :country_code)
     |> Repo.all()
   end
 
   @doc """
-  Returns all oil facilities ordered by facility_type then name.
+  Returns all locations of the given type, ordered by name.
+  """
+  def list_locations_by_type(type) when type in [:data_center, :oil_facility] do
+    Location
+    |> where([l], l.type == ^type)
+    |> order_by([l], asc: l.name)
+    |> preload(country: :country_code)
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns all data centers (type = :data_center) ordered by operator then name.
+  """
+  def list_data_centers do
+    Location
+    |> where([l], l.type == :data_center)
+    |> order_by([l], asc: l.operator, asc: l.name)
+    |> preload(country: :country_code)
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns all oil facilities (type = :oil_facility) ordered by subtype then name.
   """
   def list_oil_facilities do
-    OilFacility
-    |> order_by([f], asc: f.facility_type, asc: f.name)
+    Location
+    |> where([l], l.type == :oil_facility)
+    |> order_by([l], asc: l.subtype, asc: l.name)
+    |> preload(country: :country_code)
     |> Repo.all()
   end
 
@@ -37,10 +62,10 @@ defmodule WorldTracker.Infrastructure do
   end
 
   @doc """
-  Returns oil facilities grouped by facility_type.
+  Returns oil facilities grouped by subtype.
   """
   def list_oil_facilities_by_type do
     list_oil_facilities()
-    |> Enum.group_by(& &1.facility_type)
+    |> Enum.group_by(& &1.subtype)
   end
 end

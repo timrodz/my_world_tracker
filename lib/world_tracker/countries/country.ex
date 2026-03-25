@@ -2,9 +2,10 @@ defmodule WorldTracker.Countries.Country do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key {:alpha2, :string, []}
   schema "countries" do
     field :name, :string
+
+    has_one :country_code, WorldTracker.Countries.CountryCode
 
     timestamps(type: :utc_datetime)
   end
@@ -12,8 +13,7 @@ defmodule WorldTracker.Countries.Country do
   @doc false
   def changeset(country, attrs) do
     country
-    |> cast(attrs, [:alpha2, :name])
-    |> validate_required([:alpha2, :name])
-    |> validate_length(:alpha2, is: 2)
+    |> cast(attrs, [:name])
+    |> validate_required([:name])
   end
 end

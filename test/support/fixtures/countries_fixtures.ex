@@ -5,7 +5,8 @@ defmodule WorldTracker.CountriesFixtures do
   """
 
   @doc """
-  Generate a country.
+  Generate a country with an associated country code.
+  Uses `alpha2: "XX"` as the default alpha2 code.
   """
   def country_fixture(attrs \\ %{}) do
     {:ok, country} =
