@@ -14,11 +14,15 @@ defmodule WorldTracker.Shipping do
   def topic, do: @topic
 
   @doc """
-  Returns all ships ordered by last_seen_at descending.
+  Returns ships ordered by last_seen_at descending.
+  Accepts `limit:` option to cap results (default: all).
   """
-  def list_ships do
+  def list_ships(opts \\ []) do
+    limit = Keyword.get(opts, :limit)
+
     Ship
     |> order_by([s], desc_nulls_last: s.last_seen_at)
+    |> then(fn q -> if limit, do: limit(q, ^limit), else: q end)
     |> Repo.all()
   end
 

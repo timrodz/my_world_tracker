@@ -19,6 +19,8 @@ defmodule WorldTrackerWeb.Router do
 
     live "/", DashboardLive, :index
 
+    live "/map", MapLive, :index
+
     live "/news-articles", ArticleLive.Index, :index
     live "/news-articles/new", ArticleLive.Form, :new
     live "/news-articles/:id", ArticleLive.Show, :show

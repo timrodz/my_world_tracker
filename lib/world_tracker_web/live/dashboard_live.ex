@@ -12,6 +12,11 @@ defmodule WorldTrackerWeb.DashboardLive do
       price_options: %{currency_symbol: "$", decimals: 2}
     },
     %{
+      label: "Energy",
+      symbols: ["BZ=F", "NG=F", "HO=F", "RB=F"],
+      price_options: %{currency_symbol: "$", decimals: 3}
+    },
+    %{
       label: "Currencies",
       symbols: ["DX-Y.NYB", "EURUSD=X", "GBPUSD=X"],
       price_options: %{currency_symbol: "$", decimals: 2}
@@ -59,7 +64,7 @@ defmodule WorldTrackerWeb.DashboardLive do
               Major money indicators in one live board.
             </h1>
             <p class="max-w-xl text-sm leading-7 text-slate-200/78 sm:text-base">
-              Yahoo Finance-backed snapshots for commodities, currencies, and global indices, refreshed every minute and persisted for historical review.
+              Yahoo Finance-backed snapshots for commodities, energy, currencies, and global indices, refreshed every minute and persisted for historical review.
             </p>
           </div>
 
@@ -79,7 +84,7 @@ defmodule WorldTrackerWeb.DashboardLive do
       </section>
 
       <%!-- Market cards --%>
-      <section class="grid gap-6 lg:grid-cols-3">
+      <section class="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
         <article
           :for={group <- @groups}
           class="overflow-hidden rounded-[2rem] border border-base-300 bg-base-100 shadow-sm"
@@ -136,6 +141,17 @@ defmodule WorldTrackerWeb.DashboardLive do
 
       <%!-- Nav links --%>
       <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <.link
+          navigate={~p"/map"}
+          class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+        >
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">Explore</p>
+          <p class="mt-2 text-lg font-semibold text-base-content">World Map</p>
+          <p class="mt-1 text-sm text-base-content/65">
+            Live vessels, data centers, and oil infrastructure on one map.
+          </p>
+        </.link>
+
         <.link
           navigate={~p"/data-sources"}
           class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"

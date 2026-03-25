@@ -27,7 +27,7 @@ defmodule WorldTracker.ShippingFixtures do
     {:ok, ship} =
       attrs
       |> Enum.into(%{
-        mmsi: System.unique_integer([:positive]) |> rem(999_999_999),
+        mmsi: 100_000_000 + rem(System.unique_integer([:positive, :monotonic]), 899_999_999),
         name: "Test Vessel",
         latitude: 51.5,
         longitude: -0.12,
