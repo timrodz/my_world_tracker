@@ -1,5 +1,4 @@
 defmodule WorldTrackerWeb.DataSourceLive.Index do
-  alias Phoenix.Endpoint
   use WorldTrackerWeb, :live_view
 
   alias WorldTracker.Sources
@@ -11,7 +10,7 @@ defmodule WorldTrackerWeb.DataSourceLive.Index do
       <.header>
         Listing Data Sources
         <:actions>
-          <.button variant="primary" navigate={~p"/data-sources/new"}>
+          <.button link_type="a" color="primary" to={~p"/data-sources/new"}>
             <.icon name="hero-plus" /> New Data Source
           </.button>
         </:actions>
@@ -20,26 +19,27 @@ defmodule WorldTrackerWeb.DataSourceLive.Index do
       <.table
         id="data_sources"
         rows={@streams.data_sources}
+        row_id={fn {_id, data_source} -> "row_#{data_source.id}" end}
         row_click={fn {_id, data_source} -> JS.navigate(~p"/data-sources/#{data_source}") end}
       >
         <:col :let={{_id, data_source}} label="Name">{data_source.name}</:col>
         <:col :let={{_id, data_source}} label="Slug">{data_source.slug}</:col>
         <:col :let={{_id, data_source}} label="Base url">{data_source.base_url}</:col>
         <:col :let={{_id, data_source}} label="Endpoint url">{data_source.endpoint_url}</:col>
-        <:action :let={{_id, data_source}}>
+        <%!-- <:action :let={{_id, data_source}}>
           <div class="sr-only">
             <.link navigate={~p"/data-sources/#{data_source}"}>Show</.link>
           </div>
           <.link navigate={~p"/data-sources/#{data_source}/edit"}>Edit</.link>
-        </:action>
-        <:action :let={{id, data_source}}>
-          <.link
-            phx-click={JS.push("delete", value: %{id: data_source.id}) |> hide("##{id}")}
-            data-confirm="Are you sure?"
-          >
-            Delete
-          </.link>
-        </:action>
+        </:action> --%>
+        <%!-- <:action :let={{id, data_source}}> --%>
+        <%!-- <.link
+          phx-click={JS.push("delete", value: %{id: data_source.id}) |> hide("##{id}")}
+          data-confirm="Are you sure?"
+        >
+          Delete
+        </.link> --%>
+        <%!-- </:action> --%>
       </.table>
     </Layouts.app>
     """

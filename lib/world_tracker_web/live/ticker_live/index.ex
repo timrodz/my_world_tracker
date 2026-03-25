@@ -10,7 +10,7 @@ defmodule WorldTrackerWeb.TickerLive.Index do
       <.header>
         Listing Tickers
         <:actions>
-          <.button variant="primary" navigate={~p"/tickers/new"}>
+          <.button link_type="live_patch" color="primary" to={~p"/tickers/new"}>
             <.icon name="hero-plus" /> New Ticker
           </.button>
         </:actions>
@@ -19,25 +19,26 @@ defmodule WorldTrackerWeb.TickerLive.Index do
       <.table
         id="tickers"
         rows={@streams.tickers}
+        row_id={fn {_id, ticker} -> "row_#{ticker.id}" end}
         row_click={fn {_id, ticker} -> JS.navigate(~p"/tickers/#{ticker}") end}
       >
         <:col :let={{_id, ticker}} label="Source">{ticker.data_source.name}</:col>
         <:col :let={{_id, ticker}} label="Symbol">{ticker.symbol}</:col>
         <:col :let={{_id, ticker}} label="Name">{ticker.name}</:col>
-        <:action :let={{_id, ticker}}>
+        <%!-- <:action :let={{_id, ticker}}>
           <div class="sr-only">
             <.link navigate={~p"/tickers/#{ticker}"}>Show</.link>
           </div>
           <.link navigate={~p"/tickers/#{ticker}/edit"}>Edit</.link>
-        </:action>
-        <:action :let={{id, ticker}}>
+        </:action> --%>
+        <%!-- <:action :let={{id, ticker}}>
           <.link
             phx-click={JS.push("delete", value: %{id: ticker.id}) |> hide("##{id}")}
             data-confirm="Are you sure?"
           >
             Delete
           </.link>
-        </:action>
+        </:action> --%>
       </.table>
     </Layouts.app>
     """

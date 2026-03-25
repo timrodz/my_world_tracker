@@ -26,8 +26,8 @@ defmodule WorldTrackerWeb.DataSourceLive.Form do
         <.input field={@form[:base_url]} type="text" label="Base url" />
         <.input field={@form[:endpoint_url]} type="text" label="Endpoint url" />
         <footer>
-          <.button phx-disable-with="Saving..." variant="primary">Save Data source</.button>
-          <.button navigate={return_path(@return_to, @data_source)}>Cancel</.button>
+          <.button phx-disable-with="Saving..." color="primary">Save Data source</.button>
+          <.button link_type="a" to={return_path(@return_to, @data_source)}>Cancel</.button>
         </footer>
       </.form>
     </Layouts.app>

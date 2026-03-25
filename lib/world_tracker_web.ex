@@ -94,6 +94,11 @@ defmodule WorldTrackerWeb do
       #
       # Example — import only the modules you need:
       #   import PetalComponents.Badge
+      import PetalComponents.Button
+      import PetalComponents.Table
+      import PetalComponents.Icon
+      import PetalComponents.Input
+      import PetalComponents.Form
       #   import PetalComponents.Modal
       #   import PetalComponents.Accordion
       #
