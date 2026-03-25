@@ -8,7 +8,7 @@ defmodule WorldTracker.Repo.Migrations.CreateDataCenters do
       add :latitude, :float, null: false
       add :longitude, :float, null: false
       add :city, :string
-      add :country_code, :string
+      add :country_code, references(:countries, column: :alpha2, type: :string)
 
       timestamps(type: :utc_datetime)
     end

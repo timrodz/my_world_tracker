@@ -7,7 +7,7 @@ defmodule WorldTracker.Repo.Migrations.CreateOilFacilities do
       add :facility_type, :string, null: false
       add :latitude, :float, null: false
       add :longitude, :float, null: false
-      add :country_code, :string
+      add :country_code, references(:countries, column: :alpha2, type: :string)
       add :operator, :string
 
       timestamps(type: :utc_datetime)
