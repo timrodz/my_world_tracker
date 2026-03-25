@@ -43,10 +43,20 @@ defmodule WorldTracker.ShippingTest do
       mmsi = 987_654_321
 
       {:ok, _ship} =
-        Shipping.upsert_ship(%{mmsi: mmsi, latitude: 10.0, longitude: 20.0, data_source_id: ds.id})
+        Shipping.upsert_ship(%{
+          mmsi: mmsi,
+          latitude: 10.0,
+          longitude: 20.0,
+          data_source_id: ds.id
+        })
 
       {:ok, updated} =
-        Shipping.upsert_ship(%{mmsi: mmsi, latitude: 15.0, longitude: 25.0, data_source_id: ds.id})
+        Shipping.upsert_ship(%{
+          mmsi: mmsi,
+          latitude: 15.0,
+          longitude: 25.0,
+          data_source_id: ds.id
+        })
 
       assert updated.latitude == 15.0
       assert updated.longitude == 25.0

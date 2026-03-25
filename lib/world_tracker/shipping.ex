@@ -8,7 +8,6 @@ defmodule WorldTracker.Shipping do
   alias WorldTracker.Repo
   alias WorldTracker.Shipping.Ship
   alias WorldTracker.Sources.DataSource
-  alias Ecto.Query.API
 
   @topic "ships"
 
@@ -44,25 +43,52 @@ defmodule WorldTracker.Shipping do
   Returns `{:ok, ship}` or `{:error, changeset}`.
   """
   def upsert_ship(attrs) when is_map(attrs) do
-    %Ship{}
-    |> Ship.changeset(attrs)
-    |> Repo.insert(
-      on_conflict: [
-        set: [
-          name: API.fragment("COALESCE(EXCLUDED.name, ships.name)"),
-          latitude: API.fragment("COALESCE(EXCLUDED.latitude, ships.latitude)"),
-          longitude: API.fragment("COALESCE(EXCLUDED.longitude, ships.longitude)"),
-          speed: API.fragment("COALESCE(EXCLUDED.speed, ships.speed)"),
-          course: API.fragment("COALESCE(EXCLUDED.course, ships.course)"),
-          ship_type: API.fragment("COALESCE(EXCLUDED.ship_type, ships.ship_type)"),
-          flag: API.fragment("COALESCE(EXCLUDED.flag, ships.flag)"),
-          destination: API.fragment("COALESCE(EXCLUDED.destination, ships.destination)"),
-          last_seen_at: API.fragment("COALESCE(EXCLUDED.last_seen_at, ships.last_seen_at)"),
-          updated_at: API.fragment("EXCLUDED.updated_at")
-        ]
-      ],
-      conflict_target: :mmsi,
-      returning: true
-    )
+    mmsi = Map.get(attrs, :mmsi) || Map.get(attrs, "mmsi")
+
+    case mmsi do
+      nil ->
+        %Ship{}
+        |> Ship.changeset(attrs)
+        |> Repo.insert()
+
+      mmsi ->
+        case Repo.get_by(Ship, mmsi: mmsi) do
+          nil ->
+            %Ship{}
+            |> Ship.changeset(attrs)
+            |> Repo.insert()
+
+          existing ->
+            merged_attrs = merge_ship_attrs(existing, attrs)
+
+            existing
+            |> Ship.changeset(merged_attrs)
+            |> Repo.update()
+        end
+    end
+  end
+
+  defp merge_ship_attrs(existing, attrs) when is_map(attrs) do
+    get = fn key ->
+      cond do
+        Map.has_key?(attrs, key) -> Map.get(attrs, key)
+        Map.has_key?(attrs, to_string(key)) -> Map.get(attrs, to_string(key))
+        true -> Map.get(existing, key)
+      end
+    end
+
+    %{
+      mmsi: existing.mmsi,
+      data_source_id: existing.data_source_id,
+      name: get.(:name),
+      latitude: get.(:latitude),
+      longitude: get.(:longitude),
+      speed: get.(:speed),
+      course: get.(:course),
+      ship_type: get.(:ship_type),
+      flag: get.(:flag),
+      destination: get.(:destination),
+      last_seen_at: get.(:last_seen_at)
+    }
   end
 end

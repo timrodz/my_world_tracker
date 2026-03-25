@@ -19,6 +19,24 @@ defmodule WorldTracker.Shipping.AisStreamClient do
 
   @url "wss://stream.aisstream.io/v0/stream"
 
+  # Well-known supertankers (VLCC / oil tankers) from major global routes.
+  # TI Class: 444,000 dwt supertankers — among the largest active ships.
+  # Verify or update MMSIs at https://www.vesselfinder.com/
+  # @ships_to_track %{
+  #   # TI Class supertankers (Panama)
+  #   355_593_000 => "TI ASIA",
+  #   355_136_000 => "TI AFRICA",
+  #   355_305_000 => "TI EUROPE",
+  #   353_282_000 => "TI OCEANIA",
+  #   # Large tankers
+  #   373_972_000 => "POLAR ENDEAVOUR",
+  #   353_858_000 => "OVERSEAS GEORGIA",
+  #   314_814_000 => "SEAWAYS AMERICA",
+  #   356_235_000 => "DELTA OCEAN",
+  #   636_093_000 => "PACIFIC GEM",
+  #   538_009_000 => "MILLENIA"
+  # }
+
   @mid_to_country %{
     201 => "AL",
     202 => "AD",
@@ -300,6 +318,8 @@ defmodule WorldTracker.Shipping.AisStreamClient do
 
       :ignore
     else
+      Logger.info("AisStreamClient: initiating WebSocket connection to #{@url}")
+
       subscription =
         Jason.encode!(%{
           "APIKey" => api_key,
@@ -344,18 +364,35 @@ defmodule WorldTracker.Shipping.AisStreamClient do
   def handle_info(_msg, state), do: {:ok, state}
 
   @impl WebSockex
+  def handle_frame({:binary, msg}, state) do
+    case Jason.decode(msg) do
+      {:ok, payload} ->
+        handle_payload(payload, state)
+
+      {:error, reason} ->
+        Logger.warning(
+          "AisStreamClient: failed to decode binary message reason=#{inspect(reason)}"
+        )
+
+        {:error, state}
+    end
+  end
+
   def handle_frame({:text, msg}, state) do
     case Jason.decode(msg) do
       {:ok, payload} ->
         handle_payload(payload, state)
 
       {:error, reason} ->
-        Logger.warning("AisStreamClient: failed to decode message reason=#{inspect(reason)}")
-        {:ok, state}
+        Logger.warning("AisStreamClient: failed to decode text message reason=#{inspect(reason)}")
+        {:error, state}
     end
   end
 
-  def handle_frame(_frame, state), do: {:ok, state}
+  def handle_frame(frame, state) do
+    Logger.debug("AisStreamClient: received unhandled frame=#{inspect(frame)}")
+    {:error, state}
+  end
 
   @impl WebSockex
   def handle_disconnect(%{reason: reason}, state) do
@@ -365,21 +402,23 @@ defmodule WorldTracker.Shipping.AisStreamClient do
 
   @impl WebSockex
   def terminate(reason, _state) do
-    Logger.info("AisStreamClient: terminating reason=#{inspect(reason)}")
+    Logger.warning("AisStreamClient: terminating reason=#{inspect(reason)}")
     :ok
   end
-
-  # --- Private ---
 
   defp handle_payload(
          %{"MessageType" => "PositionReport", "Message" => message, "MetaData" => meta},
          state
        ) do
     report = Map.get(message, "PositionReport", %{})
-
     mmsi = Map.get(meta, "MMSI") || Map.get(report, "UserID")
+
     latitude = Map.get(meta, "latitude") || Map.get(report, "Latitude")
     longitude = Map.get(meta, "longitude") || Map.get(report, "Longitude")
+
+    Logger.debug(
+      "AisStreamClient: PositionReport mmsi=#{mmsi} lat=#{latitude} lon=#{longitude} IMO=#{inspect(Map.get(report, "ImoNumber"))} data_source_id=#{inspect(state.data_source_id)}"
+    )
 
     attrs = %{
       mmsi: mmsi,
@@ -400,8 +439,11 @@ defmodule WorldTracker.Shipping.AisStreamClient do
          state
        ) do
     report = Map.get(message, "ShipStaticData", %{})
-
     mmsi = Map.get(meta, "MMSI") || Map.get(report, "UserID")
+
+    Logger.debug(
+      "AisStreamClient: ShipStaticData mmsi=#{mmsi} name=#{inspect(Map.get(report, "Name") || Map.get(meta, "ShipName"))} IMO=#{inspect(Map.get(report, "ImoNumber"))} data_source_id=#{inspect(state.data_source_id)}"
+    )
 
     attrs = %{
       mmsi: mmsi,
@@ -416,14 +458,26 @@ defmodule WorldTracker.Shipping.AisStreamClient do
     upsert_and_broadcast(attrs, state)
   end
 
-  defp handle_payload(_payload, state), do: {:ok, state}
+  defp handle_payload(_payload, state) do
+    {:ok, state}
+  end
 
   defp upsert_and_broadcast(attrs, state) do
     if is_nil(attrs[:mmsi]) or is_nil(attrs[:data_source_id]) do
+      Logger.debug(
+        "AisStreamClient: skipping upsert, mmsi=#{inspect(attrs[:mmsi])} data_source_id=#{inspect(attrs[:data_source_id])}"
+      )
+
       {:ok, state}
     else
+      Logger.debug("AisStreamClient: upserting ship mmsi=#{attrs[:mmsi]}")
+
       case Shipping.upsert_ship(attrs) do
         {:ok, ship} ->
+          Logger.debug(
+            "AisStreamClient: upserted ship mmsi=#{ship.mmsi} id=#{ship.id}, broadcasting"
+          )
+
           PubSub.broadcast(WorldTracker.PubSub, Shipping.topic(), {:ship_updated, ship})
 
         {:error, reason} ->
