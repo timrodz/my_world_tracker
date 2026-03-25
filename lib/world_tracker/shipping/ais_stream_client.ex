@@ -19,181 +19,6 @@ defmodule WorldTracker.Shipping.AisStreamClient do
 
   @url "wss://stream.aisstream.io/v0/stream"
 
-  def start_link(opts \\ []) do
-    api_key = Keyword.get(opts, :api_key) || api_key_from_config()
-
-    unless is_binary(api_key) and byte_size(api_key) > 0 do
-      Logger.warning(
-        "AisStreamClient: AISSTREAM_API_KEY not configured, client will not start"
-      )
-
-      :ignore
-    else
-      subscription =
-        Jason.encode!(%{
-          "APIKey" => api_key,
-          "BoundingBoxes" => [[[-90, -180], [90, 180]]]
-        })
-
-      WebSockex.start_link(
-        @url,
-        __MODULE__,
-        %{data_source_id: nil, subscription: subscription},
-        name: __MODULE__,
-        handle_initial_conn_failure: true
-      )
-    end
-  end
-
-  @impl WebSockex
-  def handle_connect(_conn, state) do
-    Logger.info("AisStreamClient: connected to #{@url}")
-
-    data_source_id =
-      case Shipping.get_aisstream_data_source() do
-        nil ->
-          Logger.warning("AisStreamClient: AISStream data source not found in database")
-          nil
-
-        ds ->
-          ds.id
-      end
-
-    # Trigger the subscription message after connect via handle_info.
-    send(self(), :subscribe)
-
-    {:ok, %{state | data_source_id: data_source_id}}
-  end
-
-  @impl true
-  def handle_info(:subscribe, %{subscription: subscription} = state) do
-    {:reply, {:text, subscription}, state}
-  end
-
-  def handle_info(_msg, state), do: {:ok, state}
-
-  @impl WebSockex
-  def handle_frame({:text, msg}, state) do
-    case Jason.decode(msg) do
-      {:ok, payload} ->
-        handle_payload(payload, state)
-
-      {:error, reason} ->
-        Logger.warning("AisStreamClient: failed to decode message reason=#{inspect(reason)}")
-        {:ok, state}
-    end
-  end
-
-  def handle_frame(_frame, state), do: {:ok, state}
-
-  @impl WebSockex
-  def handle_disconnect(%{reason: reason}, state) do
-    Logger.warning("AisStreamClient: disconnected reason=#{inspect(reason)}, reconnecting…")
-    {:reconnect, state}
-  end
-
-  @impl WebSockex
-  def terminate(reason, _state) do
-    Logger.info("AisStreamClient: terminating reason=#{inspect(reason)}")
-    :ok
-  end
-
-  # --- Private ---
-
-  defp handle_payload(
-         %{"MessageType" => "PositionReport", "Message" => message, "MetaData" => meta},
-         state
-       ) do
-    report = Map.get(message, "PositionReport", %{})
-
-    mmsi = Map.get(meta, "MMSI") || Map.get(report, "UserID")
-    latitude = Map.get(meta, "latitude") || Map.get(report, "Latitude")
-    longitude = Map.get(meta, "longitude") || Map.get(report, "Longitude")
-
-    attrs = %{
-      mmsi: mmsi,
-      name: normalize_name(Map.get(meta, "ShipName")),
-      latitude: latitude,
-      longitude: longitude,
-      speed: float_or_nil(Map.get(report, "Sog")),
-      course: float_or_nil(Map.get(report, "Cog")),
-      last_seen_at: parse_time(Map.get(meta, "time_utc")),
-      data_source_id: state.data_source_id
-    }
-
-    upsert_and_broadcast(attrs, state)
-  end
-
-  defp handle_payload(
-         %{"MessageType" => "ShipStaticData", "Message" => message, "MetaData" => meta},
-         state
-       ) do
-    report = Map.get(message, "ShipStaticData", %{})
-
-    mmsi = Map.get(meta, "MMSI") || Map.get(report, "UserID")
-
-    attrs = %{
-      mmsi: mmsi,
-      name: normalize_name(Map.get(report, "Name") || Map.get(meta, "ShipName")),
-      ship_type: Map.get(report, "Type"),
-      flag: Map.get(report, "Flag") || country_code_from_mmsi(mmsi),
-      destination: normalize_name(Map.get(report, "Destination")),
-      last_seen_at: parse_time(Map.get(meta, "time_utc")),
-      data_source_id: state.data_source_id
-    }
-
-    upsert_and_broadcast(attrs, state)
-  end
-
-  defp handle_payload(_payload, state), do: {:ok, state}
-
-  defp upsert_and_broadcast(attrs, state) do
-    if is_nil(attrs[:mmsi]) or is_nil(attrs[:data_source_id]) do
-      {:ok, state}
-    else
-      case Shipping.upsert_ship(attrs) do
-        {:ok, ship} ->
-          PubSub.broadcast(WorldTracker.PubSub, Shipping.topic(), {:ship_updated, ship})
-
-        {:error, reason} ->
-          Logger.warning(
-            "AisStreamClient: failed to upsert ship mmsi=#{attrs[:mmsi]} reason=#{inspect(reason)}"
-          )
-      end
-
-      {:ok, state}
-    end
-  end
-
-  defp normalize_name(nil), do: nil
-
-  defp normalize_name(name) when is_binary(name) do
-    trimmed = String.trim(name)
-    if trimmed == "", do: nil, else: trimmed
-  end
-
-  defp float_or_nil(nil), do: nil
-  defp float_or_nil(v) when is_float(v), do: v
-  defp float_or_nil(v) when is_integer(v), do: v / 1
-
-  defp parse_time(nil), do: nil
-
-  defp parse_time(str) when is_binary(str) do
-    case DateTime.from_iso8601(str) do
-      {:ok, dt, _} -> DateTime.truncate(dt, :second)
-      _ -> nil
-    end
-  end
-
-  # Derive a rough country code from the MMSI MID (first 3 digits).
-  # Best-effort fallback when ShipStaticData doesn't include a flag.
-  defp country_code_from_mmsi(mmsi) when is_integer(mmsi) do
-    mid = div(mmsi, 1_000_000)
-    Map.get(@mid_to_country, mid)
-  end
-
-  defp country_code_from_mmsi(_), do: nil
-
   @mid_to_country %{
     201 => "AL",
     202 => "AD",
@@ -466,6 +291,179 @@ defmodule WorldTracker.Shipping.AisStreamClient do
     678 => "ZW",
     679 => "ZM"
   }
+
+  def start_link(opts \\ []) do
+    api_key = Keyword.get(opts, :api_key) || api_key_from_config()
+
+    unless is_binary(api_key) and byte_size(api_key) > 0 do
+      Logger.warning("AisStreamClient: AISSTREAM_API_KEY not configured, client will not start")
+
+      :ignore
+    else
+      subscription =
+        Jason.encode!(%{
+          "APIKey" => api_key,
+          "BoundingBoxes" => [[[-90, -180], [90, 180]]]
+        })
+
+      WebSockex.start_link(
+        @url,
+        __MODULE__,
+        %{data_source_id: nil, subscription: subscription},
+        name: __MODULE__,
+        handle_initial_conn_failure: true
+      )
+    end
+  end
+
+  @impl WebSockex
+  def handle_connect(_conn, state) do
+    Logger.info("AisStreamClient: connected to #{@url}")
+
+    data_source_id =
+      case Shipping.get_aisstream_data_source() do
+        nil ->
+          Logger.warning("AisStreamClient: AISStream data source not found in database")
+          nil
+
+        ds ->
+          ds.id
+      end
+
+    # Trigger the subscription message after connect via handle_info.
+    send(self(), :subscribe)
+
+    {:ok, %{state | data_source_id: data_source_id}}
+  end
+
+  @impl true
+  def handle_info(:subscribe, %{subscription: subscription} = state) do
+    {:reply, {:text, subscription}, state}
+  end
+
+  def handle_info(_msg, state), do: {:ok, state}
+
+  @impl WebSockex
+  def handle_frame({:text, msg}, state) do
+    case Jason.decode(msg) do
+      {:ok, payload} ->
+        handle_payload(payload, state)
+
+      {:error, reason} ->
+        Logger.warning("AisStreamClient: failed to decode message reason=#{inspect(reason)}")
+        {:ok, state}
+    end
+  end
+
+  def handle_frame(_frame, state), do: {:ok, state}
+
+  @impl WebSockex
+  def handle_disconnect(%{reason: reason}, state) do
+    Logger.warning("AisStreamClient: disconnected reason=#{inspect(reason)}, reconnecting…")
+    {:reconnect, state}
+  end
+
+  @impl WebSockex
+  def terminate(reason, _state) do
+    Logger.info("AisStreamClient: terminating reason=#{inspect(reason)}")
+    :ok
+  end
+
+  # --- Private ---
+
+  defp handle_payload(
+         %{"MessageType" => "PositionReport", "Message" => message, "MetaData" => meta},
+         state
+       ) do
+    report = Map.get(message, "PositionReport", %{})
+
+    mmsi = Map.get(meta, "MMSI") || Map.get(report, "UserID")
+    latitude = Map.get(meta, "latitude") || Map.get(report, "Latitude")
+    longitude = Map.get(meta, "longitude") || Map.get(report, "Longitude")
+
+    attrs = %{
+      mmsi: mmsi,
+      name: normalize_name(Map.get(meta, "ShipName")),
+      latitude: latitude,
+      longitude: longitude,
+      speed: float_or_nil(Map.get(report, "Sog")),
+      course: float_or_nil(Map.get(report, "Cog")),
+      last_seen_at: parse_time(Map.get(meta, "time_utc")),
+      data_source_id: state.data_source_id
+    }
+
+    upsert_and_broadcast(attrs, state)
+  end
+
+  defp handle_payload(
+         %{"MessageType" => "ShipStaticData", "Message" => message, "MetaData" => meta},
+         state
+       ) do
+    report = Map.get(message, "ShipStaticData", %{})
+
+    mmsi = Map.get(meta, "MMSI") || Map.get(report, "UserID")
+
+    attrs = %{
+      mmsi: mmsi,
+      name: normalize_name(Map.get(report, "Name") || Map.get(meta, "ShipName")),
+      ship_type: Map.get(report, "Type"),
+      flag: Map.get(report, "Flag") || country_code_from_mmsi(mmsi),
+      destination: normalize_name(Map.get(report, "Destination")),
+      last_seen_at: parse_time(Map.get(meta, "time_utc")),
+      data_source_id: state.data_source_id
+    }
+
+    upsert_and_broadcast(attrs, state)
+  end
+
+  defp handle_payload(_payload, state), do: {:ok, state}
+
+  defp upsert_and_broadcast(attrs, state) do
+    if is_nil(attrs[:mmsi]) or is_nil(attrs[:data_source_id]) do
+      {:ok, state}
+    else
+      case Shipping.upsert_ship(attrs) do
+        {:ok, ship} ->
+          PubSub.broadcast(WorldTracker.PubSub, Shipping.topic(), {:ship_updated, ship})
+
+        {:error, reason} ->
+          Logger.warning(
+            "AisStreamClient: failed to upsert ship mmsi=#{attrs[:mmsi]} reason=#{inspect(reason)}"
+          )
+      end
+
+      {:ok, state}
+    end
+  end
+
+  defp normalize_name(nil), do: nil
+
+  defp normalize_name(name) when is_binary(name) do
+    trimmed = String.trim(name)
+    if trimmed == "", do: nil, else: trimmed
+  end
+
+  defp float_or_nil(nil), do: nil
+  defp float_or_nil(v) when is_float(v), do: v
+  defp float_or_nil(v) when is_integer(v), do: v / 1
+
+  defp parse_time(nil), do: nil
+
+  defp parse_time(str) when is_binary(str) do
+    case DateTime.from_iso8601(str) do
+      {:ok, dt, _} -> DateTime.truncate(dt, :second)
+      _ -> nil
+    end
+  end
+
+  # Derive a rough country code from the MMSI MID (first 3 digits).
+  # Best-effort fallback when ShipStaticData doesn't include a flag.
+  defp country_code_from_mmsi(mmsi) when is_integer(mmsi) do
+    mid = div(mmsi, 1_000_000)
+    Map.get(@mid_to_country, mid)
+  end
+
+  defp country_code_from_mmsi(_), do: nil
 
   defp api_key_from_config do
     Application.get_env(:world_tracker, :aisstream_api_key)
