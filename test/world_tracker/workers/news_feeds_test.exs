@@ -5,7 +5,7 @@ defmodule WorldTracker.News.FetchNewsWorkerTest do
   import WorldTracker.NewsFixtures
 
   alias WorldTracker.News
-  alias WorldTracker.News.FetchNewsWorker
+  alias WorldTracker.Workers.NewsFeeds
 
   setup do
     original_fetcher = Application.get_env(:world_tracker, :news_rss_fetcher)
@@ -22,18 +22,18 @@ defmodule WorldTracker.News.FetchNewsWorkerTest do
   end
 
   test "enqueue/0 schedules the orchestrator job on the news queue" do
-    assert {:ok, _job} = FetchNewsWorker.enqueue()
-    assert_enqueued(worker: FetchNewsWorker, queue: :news)
+    assert {:ok, _job} = NewsFeeds.enqueue()
+    assert_enqueued(worker: NewsFeeds, queue: :news)
   end
 
   test "perform/1 orchestrates one child job per news source" do
     first = news_data_source_fixture(%{name: "BBC News", slug: "bbc-news"})
     second = news_data_source_fixture(%{name: "NPR World", slug: "npr-world"})
 
-    assert :ok = perform_job(FetchNewsWorker, %{})
+    assert :ok = perform_job(NewsFeeds, %{})
 
-    assert_enqueued(worker: FetchNewsWorker, queue: :news, args: %{"source_slug" => first.slug})
-    assert_enqueued(worker: FetchNewsWorker, queue: :news, args: %{"source_slug" => second.slug})
+    assert_enqueued(worker: NewsFeeds, queue: :news, args: %{"source_slug" => first.slug})
+    assert_enqueued(worker: NewsFeeds, queue: :news, args: %{"source_slug" => second.slug})
   end
 
   test "perform/1 fetches, stores, and broadcasts for a single source" do
@@ -42,7 +42,7 @@ defmodule WorldTracker.News.FetchNewsWorkerTest do
 
     Phoenix.PubSub.subscribe(WorldTracker.PubSub, News.topic())
 
-    assert :ok = perform_job(FetchNewsWorker, %{source_slug: source.slug})
+    assert :ok = perform_job(NewsFeeds, %{source_slug: source.slug})
 
     articles = News.list_news_articles(source: source.slug)
     assert length(articles) == 1
@@ -53,6 +53,6 @@ defmodule WorldTracker.News.FetchNewsWorkerTest do
 
   test "perform/1 returns an error when the news source is missing" do
     assert {:error, "news data source not found for slug=missing-source"} =
-             perform_job(FetchNewsWorker, %{source_slug: "missing-source"})
+             perform_job(NewsFeeds, %{source_slug: "missing-source"})
   end
 end

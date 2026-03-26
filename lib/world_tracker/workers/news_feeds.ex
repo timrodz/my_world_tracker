@@ -1,4 +1,4 @@
-defmodule WorldTracker.News.FetchNewsWorker do
+defmodule WorldTracker.Workers.NewsFeeds do
   use Oban.Worker, queue: :news, max_attempts: 3
 
   require Logger

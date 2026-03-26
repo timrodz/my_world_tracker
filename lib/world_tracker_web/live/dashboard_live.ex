@@ -2,9 +2,9 @@ defmodule WorldTrackerWeb.DashboardLive do
   use WorldTrackerWeb, :live_view
 
   alias WorldTracker.Markets
-  alias WorldTracker.Markets.PricePoller
   alias WorldTracker.Shipping
   alias WorldTracker.Infrastructure
+  alias WorldTracker.Workers
   alias WorldTracker.News
 
   @groups [
@@ -35,7 +35,7 @@ defmodule WorldTrackerWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(WorldTracker.PubSub, PricePoller.topic())
+      Phoenix.PubSub.subscribe(WorldTracker.PubSub, Workers.Markets.topic())
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, Shipping.topic())
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, News.topic())
     end

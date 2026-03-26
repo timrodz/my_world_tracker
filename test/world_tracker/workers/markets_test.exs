@@ -6,7 +6,7 @@ defmodule WorldTracker.Markets.PricePollerTest do
   import WorldTracker.SourcesFixtures
 
   alias WorldTracker.Markets
-  alias WorldTracker.Markets.PricePoller
+  alias WorldTracker.Workers
   alias WorldTracker.Sources
 
   setup do
@@ -29,8 +29,8 @@ defmodule WorldTracker.Markets.PricePollerTest do
   end
 
   test "enqueue/1 schedules the worker on the market_prices queue" do
-    assert {:ok, _job} = PricePoller.enqueue()
-    assert_enqueued(worker: PricePoller, queue: :market_prices)
+    assert {:ok, _job} = Workers.Markets.enqueue()
+    assert_enqueued(worker: Workers.Markets, queue: :market_prices)
   end
 
   test "perform/1 records prices and broadcasts updates to subscribers" do
@@ -41,9 +41,9 @@ defmodule WorldTracker.Markets.PricePollerTest do
     symbol = "TEST#{System.unique_integer([:positive])}"
     ticker = ticker_fixture(%{data_source: data_source, name: "Gold", symbol: symbol})
 
-    Phoenix.PubSub.subscribe(WorldTracker.PubSub, PricePoller.topic())
+    Phoenix.PubSub.subscribe(WorldTracker.PubSub, Workers.Markets.topic())
 
-    assert :ok = perform_job(PricePoller, %{})
+    assert :ok = perform_job(Workers.Markets, %{})
 
     latest_price =
       Enum.find(Markets.latest_prices(), fn price ->

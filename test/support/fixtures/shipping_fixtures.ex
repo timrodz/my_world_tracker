@@ -4,7 +4,6 @@ defmodule WorldTracker.ShippingFixtures do
   """
 
   alias WorldTracker.Repo
-  alias WorldTracker.Shipping.Ship
 
   def data_source_fixture(attrs \\ %{}) do
     {:ok, ds} =

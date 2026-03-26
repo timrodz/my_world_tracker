@@ -5,7 +5,7 @@ defmodule WorldTrackerWeb.ArticleLiveTest do
   import Phoenix.LiveViewTest
   import WorldTracker.NewsFixtures
 
-  alias WorldTracker.News.FetchNewsWorker
+  alias WorldTracker.Workers.NewsFeeds
 
   defp create_article(_) do
     article = article_fixture()
@@ -58,14 +58,14 @@ defmodule WorldTrackerWeb.ArticleLiveTest do
       |> element("#fetch-all-news")
       |> render_click()
 
-      assert_enqueued(worker: FetchNewsWorker, queue: :news, args: %{})
+      assert_enqueued(worker: NewsFeeds, queue: :news, args: %{})
 
       live
       |> element("#fetch-source-#{source.slug}")
       |> render_click()
 
       assert_enqueued(
-        worker: FetchNewsWorker,
+        worker: NewsFeeds,
         queue: :news,
         args: %{"source_slug" => source.slug}
       )

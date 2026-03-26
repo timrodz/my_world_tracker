@@ -13,8 +13,8 @@ config :world_tracker, Oban,
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
-       {"*/5 * * * *", WorldTracker.Markets.PricePoller},
-       {"*/30 * * * *", WorldTracker.News.FetchNewsWorker}
+       {"*/5 * * * *", WorldTracker.Workers.Markets},
+       {"*/30 * * * *", WorldTracker.Workers.NewsFeeds}
      ]}
   ],
   queues: [default: 10, market_prices: 1, news: 4],

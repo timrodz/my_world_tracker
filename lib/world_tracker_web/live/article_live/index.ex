@@ -2,7 +2,7 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
   use WorldTrackerWeb, :live_view
 
   alias WorldTracker.News
-  alias WorldTracker.News.FetchNewsWorker
+  alias WorldTracker.Workers.NewsFeeds
   alias WorldTracker.Sources
 
   @articles_per_page 6
@@ -77,7 +77,7 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
 
   @impl true
   def handle_event("fetch_all", _params, socket) do
-    case FetchNewsWorker.enqueue() do
+    case NewsFeeds.enqueue() do
       {:ok, _job} ->
         {:noreply, put_flash(socket, :info, "Queued a refresh for all news sources")}
 
@@ -87,7 +87,7 @@ defmodule WorldTrackerWeb.ArticleLive.Index do
   end
 
   def handle_event("fetch_source", %{"slug" => slug}, socket) do
-    case FetchNewsWorker.enqueue(%{source_slug: slug}) do
+    case NewsFeeds.enqueue(%{source_slug: slug}) do
       {:ok, _job} ->
         {:noreply, put_flash(socket, :info, "Queued a refresh for #{source_name(slug)}")}
 
