@@ -1,4 +1,4 @@
-defmodule WorldTracker.Markets.PricePoller do
+defmodule WorldTracker.Workers.Markets do
   use Oban.Worker, queue: :market_prices, max_attempts: 1
 
   require Logger

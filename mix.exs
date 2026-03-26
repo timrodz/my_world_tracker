@@ -69,6 +69,7 @@ defmodule WorldTracker.MixProject do
       {:bandit, "~> 1.5"},
       {:oban, "~> 2.19"},
       {:fast_rss, "~> 0.5"},
+      {:websockex, "~> 0.4"},
       {:igniter, "~> 0.5", only: [:dev]}
     ]
   end
@@ -81,7 +82,13 @@ defmodule WorldTracker.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: [
+        "deps.get",
+        "ecto.setup",
+        "cmd --cd assets npm install",
+        "assets.setup",
+        "assets.build"
+      ],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],

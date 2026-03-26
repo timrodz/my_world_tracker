@@ -2,7 +2,9 @@ defmodule WorldTrackerWeb.DashboardLive do
   use WorldTrackerWeb, :live_view
 
   alias WorldTracker.Markets
-  alias WorldTracker.Markets.PricePoller
+  alias WorldTracker.Shipping
+  alias WorldTracker.Infrastructure
+  alias WorldTracker.Workers
   alias WorldTracker.News
 
   @groups [
@@ -10,6 +12,11 @@ defmodule WorldTrackerWeb.DashboardLive do
       label: "Commodities",
       symbols: ["GC=F", "SI=F", "CL=F"],
       price_options: %{currency_symbol: "$", decimals: 2}
+    },
+    %{
+      label: "Energy",
+      symbols: ["BZ=F", "NG=F", "HO=F", "RB=F"],
+      price_options: %{currency_symbol: "$", decimals: 3}
     },
     %{
       label: "Currencies",
@@ -28,18 +35,25 @@ defmodule WorldTrackerWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(WorldTracker.PubSub, PricePoller.topic())
+      Phoenix.PubSub.subscribe(WorldTracker.PubSub, Workers.Markets.topic())
+      Phoenix.PubSub.subscribe(WorldTracker.PubSub, Shipping.topic())
       Phoenix.PubSub.subscribe(WorldTracker.PubSub, News.topic())
     end
 
     prices = Markets.latest_prices()
     articles = News.list_news_articles(limit: @news_limit)
+    ships = Shipping.list_ships(limit: 500)
+    data_centers = Infrastructure.list_data_centers()
+    oil_facilities = Infrastructure.list_oil_facilities()
 
     {:ok,
      socket
      |> assign(:page_title, "Market Dashboard")
      |> assign(:groups, grouped_prices(prices))
      |> assign(:last_updated_at, last_updated_at(prices))
+     |> assign(:ships, ships)
+     |> assign(:data_centers, data_centers)
+     |> assign(:oil_facilities, oil_facilities)
      |> stream(:news_articles, articles)}
   end
 
@@ -59,7 +73,7 @@ defmodule WorldTrackerWeb.DashboardLive do
               Major money indicators in one live board.
             </h1>
             <p class="max-w-xl text-sm leading-7 text-slate-200/78 sm:text-base">
-              Yahoo Finance-backed snapshots for commodities, currencies, and global indices, refreshed every minute and persisted for historical review.
+              Yahoo Finance-backed snapshots for commodities, energy, currencies, and global indices, refreshed every minute and persisted for historical review.
             </p>
           </div>
 
@@ -79,7 +93,7 @@ defmodule WorldTrackerWeb.DashboardLive do
       </section>
 
       <%!-- Market cards --%>
-      <section class="grid gap-6 lg:grid-cols-3">
+      <section class="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
         <article
           :for={group <- @groups}
           class="overflow-hidden rounded-[2rem] border border-base-300 bg-base-100 shadow-sm"
@@ -115,6 +129,20 @@ defmodule WorldTrackerWeb.DashboardLive do
         </article>
       </section>
 
+      <%!-- World map --%>
+      <section>
+        <h2 class="mb-4 text-xl font-semibold text-base-content">Live World Map</h2>
+        <div
+          id="world-map"
+          phx-hook="WorldMap"
+          phx-update="ignore"
+          data-ships={Jason.encode!(Enum.map(@ships, &ship_json/1))}
+          data-data-centers={Jason.encode!(Enum.map(@data_centers, &dc_json/1))}
+          data-oil-facilities={Jason.encode!(Enum.map(@oil_facilities, &oil_json/1))}
+          class="h-[65vh] min-h-[400px] w-full rounded-sm overflow-hidden border border-base-300 shadow-lg"
+        />
+      </section>
+
       <%!-- Latest news --%>
       <section>
         <div class="mb-4 flex items-center justify-between">
@@ -136,6 +164,19 @@ defmodule WorldTrackerWeb.DashboardLive do
 
       <%!-- Nav links --%>
       <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <.link
+          navigate={~p"/map"}
+          class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+        >
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45">
+            Explore
+          </p>
+          <p class="mt-2 text-lg font-semibold text-base-content">World Map</p>
+          <p class="mt-1 text-sm text-base-content/65">
+            Live vessels, data centers, and oil infrastructure on one map.
+          </p>
+        </.link>
+
         <.link
           navigate={~p"/data-sources"}
           class="rounded-[1.5rem] border border-base-300 bg-base-100 px-5 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
@@ -187,6 +228,11 @@ defmodule WorldTrackerWeb.DashboardLive do
     {:noreply, stream(socket, :news_articles, articles, reset: true)}
   end
 
+  @impl true
+  def handle_info({:ship_updated, ship}, socket) do
+    {:noreply, push_event(socket, "ship-updated", ship_json(ship))}
+  end
+
   defp grouped_prices(prices) do
     price_map = Map.new(prices, &{&1.symbol, &1})
 
@@ -211,4 +257,45 @@ defmodule WorldTrackerWeb.DashboardLive do
 
   defp format_timestamp(nil), do: "Awaiting first poll"
   defp format_timestamp(datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp ship_json(ship) do
+    %{
+      mmsi: ship.mmsi,
+      name: ship.name,
+      latitude: ship.latitude,
+      longitude: ship.longitude,
+      speed: ship.speed,
+      course: ship.course,
+      flag: ship.flag,
+      destination: ship.destination
+    }
+  end
+
+  defp dc_json(dc) do
+    %{
+      id: dc.id,
+      name: dc.name,
+      operator: dc.operator,
+      latitude: dc.latitude,
+      longitude: dc.longitude,
+      city: dc.city,
+      country_code: get_alpha2(dc.country)
+    }
+  end
+
+  defp oil_json(oil) do
+    %{
+      id: oil.id,
+      name: oil.name,
+      facility_type: oil.subtype,
+      latitude: oil.latitude,
+      longitude: oil.longitude,
+      country_code: get_alpha2(oil.country),
+      operator: oil.operator
+    }
+  end
+
+  defp get_alpha2(nil), do: nil
+  defp get_alpha2(%{alpha2_code: code}), do: code
+  defp get_alpha2(_), do: nil
 end

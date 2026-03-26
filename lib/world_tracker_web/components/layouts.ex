@@ -60,6 +60,14 @@ defmodule WorldTrackerWeb.Layouts do
           </li>
           <li>
             <.link
+              navigate={~p"/map"}
+              class="px-3 py-2 rounded-lg text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-200 transition"
+            >
+              Map
+            </.link>
+          </li>
+          <li>
+            <.link
               navigate={~p"/news-articles"}
               class="px-3 py-2 rounded-lg text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-200 transition"
             >

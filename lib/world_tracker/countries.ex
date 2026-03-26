@@ -10,80 +10,48 @@ defmodule WorldTracker.Countries do
 
   @doc """
   Returns the list of countries.
-
-  ## Examples
-
-      iex> list_countries()
-      [%Country{}, ...]
-
   """
   def list_countries do
     Repo.all(Country)
   end
 
   @doc """
-  Gets a single country.
+  Gets a single country by integer id.
 
   Raises `Ecto.NoResultsError` if the Country does not exist.
-
-  ## Examples
-
-      iex> get_country!(123)
-      %Country{}
-
-      iex> get_country!(456)
-      ** (Ecto.NoResultsError)
-
   """
   def get_country!(id), do: Repo.get!(Country, id)
 
   @doc """
+  Gets a single country by alpha2 code.
+  Returns `nil` if no country has that alpha2 code.
+  """
+  def get_country_by_alpha2(alpha2_code) do
+    Repo.one(from c in Country, where: c.alpha2_code == ^alpha2_code)
+  end
+
+  @doc """
   Creates a country.
-
-  ## Examples
-
-      iex> create_country(%{field: value})
-      {:ok, %Country{}}
-
-      iex> create_country(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
+  Accepts `alpha2` or `alpha2_code` in attrs for the country code.
   """
   def create_country(attrs) do
     %Country{}
-    |> Country.changeset(attrs)
+    |> Country.changeset(normalize_attrs(attrs))
     |> Repo.insert()
   end
 
   @doc """
   Updates a country.
-
-  ## Examples
-
-      iex> update_country(country, %{field: new_value})
-      {:ok, %Country{}}
-
-      iex> update_country(country, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
+  Accepts `alpha2` or `alpha2_code` in attrs for the country code.
   """
   def update_country(%Country{} = country, attrs) do
     country
-    |> Country.changeset(attrs)
+    |> Country.changeset(normalize_attrs(attrs))
     |> Repo.update()
   end
 
   @doc """
   Deletes a country.
-
-  ## Examples
-
-      iex> delete_country(country)
-      {:ok, %Country{}}
-
-      iex> delete_country(country)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_country(%Country{} = country) do
     Repo.delete(country)
@@ -91,14 +59,23 @@ defmodule WorldTracker.Countries do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking country changes.
-
-  ## Examples
-
-      iex> change_country(country)
-      %Ecto.Changeset{data: %Country{}}
-
   """
   def change_country(%Country{} = country, attrs \\ %{}) do
-    Country.changeset(country, attrs)
+    Country.changeset(country, normalize_attrs(attrs))
+  end
+
+  # Normalise attrs so callers can pass :alpha2 or :alpha2_code (atom or string keys).
+  defp normalize_attrs(attrs) do
+    alpha2 =
+      attrs[:alpha2_code] || attrs[:alpha2] ||
+        attrs["alpha2_code"] || attrs["alpha2"]
+
+    string_attrs = Map.new(attrs, fn {k, v} -> {to_string(k), v} end)
+
+    if alpha2 do
+      Map.put(string_attrs, "alpha2_code", alpha2)
+    else
+      string_attrs
+    end
   end
 end

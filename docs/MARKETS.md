@@ -1,6 +1,6 @@
 # News Fetch Worker
 
-`WorldTracker.News.FetchNewsWorker` runs RSS news ingestion as an Oban background job.
+`WorldTracker.Workers.NewsFeeds` runs RSS news ingestion as an Oban background job.
 
 ## Architecture
 
@@ -12,12 +12,12 @@
 
 ## Sources
 
-| Slug | Name | Feed |
-|------|------|------|
-| `bbc_news` | BBC News | `https://feeds.bbci.co.uk/news/world/rss.xml` |
-| `al_jazeera` | Al Jazeera | `https://www.aljazeera.com/xml/rss/all.xml` |
-| `the_guardian` | The Guardian | `https://www.theguardian.com/world/rss` |
-| `npr_world` | NPR World | `https://feeds.npr.org/1004/rss.xml` |
+| Slug           | Name         | Feed                                          |
+| -------------- | ------------ | --------------------------------------------- |
+| `bbc_news`     | BBC News     | `https://feeds.bbci.co.uk/news/world/rss.xml` |
+| `al_jazeera`   | Al Jazeera   | `https://www.aljazeera.com/xml/rss/all.xml`   |
+| `the_guardian` | The Guardian | `https://www.theguardian.com/world/rss`       |
+| `npr_world`    | NPR World    | `https://feeds.npr.org/1004/rss.xml`          |
 
 ## UI updates
 
@@ -43,10 +43,10 @@ With the server running, Oban will:
 To enqueue a fetch immediately from `iex`:
 
 ```elixir
-WorldTracker.News.FetchNewsWorker.enqueue("bbc_news")
-WorldTracker.News.FetchNewsWorker.enqueue("al_jazeera")
-WorldTracker.News.FetchNewsWorker.enqueue("the_guardian")
-WorldTracker.News.FetchNewsWorker.enqueue("npr_world")
+WorldTracker.Workers.NewsFeeds.enqueue("bbc_news")
+WorldTracker.Workers.NewsFeeds.enqueue("al_jazeera")
+WorldTracker.Workers.NewsFeeds.enqueue("the_guardian")
+WorldTracker.Workers.NewsFeeds.enqueue("npr_world")
 ```
 
 To enqueue a fetch from the command line (app does not need to be running):

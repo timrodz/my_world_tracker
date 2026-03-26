@@ -17,7 +17,7 @@ defmodule WorldTracker.CountriesTest do
 
     test "get_country!/1 returns the country with given id" do
       country = country_fixture()
-      assert Countries.get_country!(country.alpha2) == country
+      assert Countries.get_country!(country.id) == country
     end
 
     test "create_country/1 with valid data creates a country" do
@@ -25,7 +25,7 @@ defmodule WorldTracker.CountriesTest do
 
       assert {:ok, %Country{} = country} = Countries.create_country(valid_attrs)
       assert country.name == "some name"
-      assert country.alpha2 == "XX"
+      assert country.alpha2_code == "XX"
     end
 
     test "create_country/1 with invalid data returns error changeset" do
@@ -38,19 +38,19 @@ defmodule WorldTracker.CountriesTest do
 
       assert {:ok, %Country{} = country} = Countries.update_country(country, update_attrs)
       assert country.name == "some updated name"
-      assert country.alpha2 == "YY"
+      assert country.alpha2_code == "YY"
     end
 
     test "update_country/2 with invalid data returns error changeset" do
       country = country_fixture()
       assert {:error, %Ecto.Changeset{}} = Countries.update_country(country, @invalid_attrs)
-      assert country == Countries.get_country!(country.alpha2)
+      assert country == Countries.get_country!(country.id)
     end
 
     test "delete_country/1 deletes the country" do
       country = country_fixture()
       assert {:ok, %Country{}} = Countries.delete_country(country)
-      assert_raise Ecto.NoResultsError, fn -> Countries.get_country!(country.alpha2) end
+      assert_raise Ecto.NoResultsError, fn -> Countries.get_country!(country.id) end
     end
 
     test "change_country/1 returns a country changeset" do

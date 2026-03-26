@@ -1,5 +1,4 @@
 defmodule WorldTrackerWeb.DataSourceLive.Index do
-  alias Phoenix.Endpoint
   use WorldTrackerWeb, :live_view
 
   alias WorldTracker.Sources

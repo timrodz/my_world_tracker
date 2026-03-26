@@ -2,11 +2,13 @@ defmodule WorldTracker.Repo.Migrations.CreateCountries do
   use Ecto.Migration
 
   def change do
-    create table(:countries, primary_key: false) do
-      add :alpha2, :string, primary_key: true
+    create table(:countries) do
       add :name, :string, null: false
+      add :alpha2_code, :string, null: false
 
       timestamps(type: :utc_datetime)
     end
+
+    create unique_index(:countries, [:alpha2_code])
   end
 end

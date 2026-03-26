@@ -13,8 +13,8 @@ config :world_tracker, Oban,
   plugins: [
     {Oban.Plugins.Cron,
      crontab: [
-       {"*/5 * * * *", WorldTracker.Markets.PricePoller},
-       {"*/30 * * * *", WorldTracker.News.FetchNewsWorker}
+       {"*/5 * * * *", WorldTracker.Workers.Markets},
+       {"*/30 * * * *", WorldTracker.Workers.NewsFeeds}
      ]}
   ],
   queues: [default: 10, market_prices: 1, news: 4],
@@ -59,9 +59,15 @@ config :esbuild,
   version: "0.25.4",
   world_tracker: [
     args:
-      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --alias:@=.),
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/* --loader:.png=file --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+    env: %{
+      "NODE_PATH" => [
+        Path.expand("../assets/node_modules", __DIR__),
+        Path.expand("../deps", __DIR__),
+        Mix.Project.build_path()
+      ]
+    }
   ]
 
 # Configure tailwind (the version is required)

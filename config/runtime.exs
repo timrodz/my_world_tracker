@@ -20,6 +20,8 @@ if System.get_env("PHX_SERVER") do
   config :world_tracker, WorldTrackerWeb.Endpoint, server: true
 end
 
+config :world_tracker, :aisstream_api_key, System.get_env("AISSTREAM_API_KEY")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
