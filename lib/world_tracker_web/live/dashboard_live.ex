@@ -3,7 +3,7 @@ defmodule WorldTrackerWeb.DashboardLive do
 
   alias WorldTracker.Markets
   alias WorldTracker.Shipping
-  alias WorldTracker.Infrastructure
+  alias WorldTracker.Locations
   alias WorldTracker.Workers
   alias WorldTracker.News
 
@@ -43,8 +43,8 @@ defmodule WorldTrackerWeb.DashboardLive do
     prices = Markets.latest_prices()
     articles = News.list_news_articles(limit: @news_limit)
     ships = Shipping.list_ships(limit: 500)
-    data_centers = Infrastructure.list_data_centers()
-    oil_facilities = Infrastructure.list_oil_facilities()
+    data_centers = Locations.list_data_centers()
+    oil_facilities = Locations.list_oil_facilities()
 
     {:ok,
      socket

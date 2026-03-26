@@ -1,7 +1,7 @@
 defmodule WorldTrackerWeb.MapLive do
   use WorldTrackerWeb, :live_view
 
-  alias WorldTracker.Infrastructure
+  alias WorldTracker.Locations
   alias WorldTracker.Shipping
 
   @impl true
@@ -11,8 +11,8 @@ defmodule WorldTrackerWeb.MapLive do
     end
 
     ships = Shipping.list_ships(limit: 500)
-    data_centers = Infrastructure.list_data_centers()
-    oil_facilities = Infrastructure.list_oil_facilities()
+    data_centers = Locations.list_data_centers()
+    oil_facilities = Locations.list_oil_facilities()
 
     {:ok,
      socket

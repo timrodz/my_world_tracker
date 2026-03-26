@@ -14,16 +14,18 @@ config :world_tracker, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"*/5 * * * *", WorldTracker.Workers.Markets},
-       {"*/30 * * * *", WorldTracker.Workers.NewsFeeds}
+       {"*/30 * * * *", WorldTracker.Workers.NewsFeeds},
+       {"0 3 * * *", WorldTracker.Workers.Locations}
      ]}
   ],
-  queues: [default: 10, market_prices: 1, news: 4],
+  queues: [default: 10, market_prices: 5, news: 4, locations: 1],
   repo: WorldTracker.Repo
 
 config :world_tracker,
   ecto_repos: [WorldTracker.Repo],
   generators: [timestamp_type: :utc_datetime],
-  market_quote_fetchers: %{"yahoo_finance" => WorldTracker.Markets.YahooFinance}
+  market_quote_fetchers: %{"yahoo_finance" => WorldTracker.Markets.YahooFinance},
+  overpass_client: WorldTracker.Locations.OverpassClient
 
 config :pythonx, :uv_init,
   pyproject_toml: """

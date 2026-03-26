@@ -1,10 +1,10 @@
-defmodule WorldTracker.Infrastructure.Location do
+defmodule WorldTracker.Locations.Location do
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "locations" do
     field :name, :string
-    field :type, Ecto.Enum, values: [:data_center, :oil_facility]
+    field :type, Ecto.Enum, values: [:data_center, :oil_facility, :port, :airport, :military_base]
     field :subtype, :string
     field :operator, :string
     field :latitude, :float
