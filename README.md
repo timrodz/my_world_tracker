@@ -12,6 +12,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 ## Project docs
 
 * [Price poller architecture and operations](docs/PRICE_POLLER.md)
+* [Locations Overpass worker architecture and operations](docs/LOCATIONS_OVERPASS.md)
 
 ## Learn more
 
